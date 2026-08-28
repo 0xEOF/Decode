@@ -10,7 +10,12 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import Anthropic from '@anthropic-ai/sdk';
-import { scanForCovertInstructions } from '../server/scan.ts';
+// NodeNext convention: reference the compiled .js filename even though the
+// source is scan.ts — Vercel transpiles each file individually rather than
+// bundling, and doesn't rewrite import specifiers, so a literal '.ts' import
+// here becomes an unresolvable path at runtime (ERR_MODULE_NOT_FOUND). tsx
+// (used for local dev) resolves this convention correctly too.
+import { scanForCovertInstructions } from '../server/scan.js';
 
 // Minimal shape of what Vercel's Node.js runtime actually hands a function —
 // IncomingMessage/ServerResponse plus its parsed-body and response helpers.

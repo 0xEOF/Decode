@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
-import { scanForCovertInstructions } from './scan.ts';
+import { scanForCovertInstructions } from './scan.js';
 
 try {
   process.loadEnvFile();
