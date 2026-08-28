@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ClipboardEvent, ChangeEvent } from 'react';
 import './App.css';
-import { analyze } from './lib/analyzer';
+import { analyze, flattenVisibleText, mergeAIFindings } from './lib/analyzer';
 import { createCleanVersion } from './lib/cleaner';
+import { scanWithAI } from './lib/aiScan';
 import type { AnalysisResult } from './lib/types';
 import AnalyzedOutput from './components/AnalyzedOutput';
 import FindingsList from './components/FindingsList';
@@ -12,15 +13,19 @@ const PLACEHOLDER = `Paste text or rich content here to scan it for:
 
 - Hidden or invisible content (display:none, visibility:hidden, opacity:0)
 - Invisible/suspicious Unicode characters (zero-width spaces, bidi overrides, hidden Unicode "tags")
-- Suspicious phrases (prompt-injection language, credential phishing, urgency scams)
+- Suspicious phrases and covert AI-directed instructions (checked locally, then with an AI deep scan)
 
-Everything runs locally in your browser. Nothing is sent to a server.`;
+Hidden/invisible-content checks run instantly in your browser. The visible text is also sent to our
+server for an AI deep scan that catches paraphrased covert instructions a fixed pattern list would miss.`;
 
 function App() {
   const [rawText, setRawText] = useState('');
   const [pastedHtml, setPastedHtml] = useState<string | undefined>(undefined);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isDeepScanning, setIsDeepScanning] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const cleanText = useMemo(() => (result ? createCleanVersion(result) : ''), [result]);
 
@@ -38,22 +43,44 @@ function App() {
     setResult(null);
   }
 
-  function handleAnalyze() {
-    setResult(analyze({ text: rawText, html: pastedHtml }));
+  async function handleAnalyze() {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const local = analyze({ text: rawText, html: pastedHtml });
+    setResult(local);
     setShowPreview(false);
+    setAiError(null);
+    setIsDeepScanning(true);
+
+    try {
+      const { blob } = flattenVisibleText(local.segments);
+      const aiFindings = await scanWithAI(blob, controller.signal);
+      if (controller.signal.aborted) return;
+      setResult(mergeAIFindings(local, aiFindings));
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      setAiError(err instanceof Error ? err.message : 'AI deep scan unavailable — showing local results only.');
+    } finally {
+      if (!controller.signal.aborted) setIsDeepScanning(false);
+    }
   }
 
   function handleClear() {
+    abortRef.current?.abort();
     setRawText('');
     setPastedHtml(undefined);
     setResult(null);
+    setAiError(null);
+    setIsDeepScanning(false);
   }
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>Hidden Text &amp; Content Scanner</h1>
-        <p>Paste → Analyze → See what's hidden → Copy a clean version. Runs entirely client-side.</p>
+        <p>Paste → Analyze → See what's hidden → Copy a clean version.</p>
       </header>
 
       <div className="panel">
@@ -66,8 +93,8 @@ function App() {
           spellCheck={false}
         />
         <div className="toolbar">
-          <button type="button" className="btn btn-primary" onClick={handleAnalyze} disabled={!rawText.trim()}>
-            Analyze
+          <button type="button" className="btn btn-primary" onClick={handleAnalyze} disabled={!rawText.trim() || isDeepScanning}>
+            {isDeepScanning ? 'Analyzing…' : 'Analyze'}
           </button>
           <button type="button" className="btn" onClick={handleClear} disabled={!rawText && !result}>
             Clear
@@ -93,9 +120,16 @@ function App() {
               {result.stats.suspiciousKeyword > 0 && (
                 <span className="stat-chip stat-chip--keyword">🟠 {result.stats.suspiciousKeyword} suspicious</span>
               )}
-              {result.stats.total === 0 && <span className="stat-chip stat-chip--clean">✓ clean</span>}
+              {result.stats.total === 0 && !isDeepScanning && <span className="stat-chip stat-chip--clean">✓ clean</span>}
+              {isDeepScanning && <span className="stat-chip stat-chip--scanning">🔎 running AI deep scan…</span>}
             </div>
           </div>
+
+          {aiError && (
+            <div className="ai-error-banner">
+              AI deep scan unavailable — showing local checks only. <span>{aiError}</span>
+            </div>
+          )}
 
           <AnalyzedOutput result={result} />
 
@@ -120,7 +154,11 @@ function App() {
         </div>
       )}
 
-      <p className="footnote">No content ever leaves your browser. This tool exposes hidden content — it does not censor visible content.</p>
+      <p className="footnote">
+        Hidden/invisible-content detection runs entirely in your browser. Visible text is also sent to our server
+        for an AI deep scan for covert instructions — this tool exposes hidden content, it does not censor visible
+        content.
+      </p>
     </div>
   );
 }

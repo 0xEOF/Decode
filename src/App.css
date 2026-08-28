@@ -209,6 +209,24 @@ mark {
   color: var(--success);
 }
 
+.stat-chip--scanning {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.ai-error-banner {
+  margin: 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--keyword-bg);
+  color: var(--keyword);
+  font-size: 13px;
+}
+
+.ai-error-banner span {
+  color: var(--text-dim);
+}
+
 .findings-list {
   list-style: none;
   margin: 0;
