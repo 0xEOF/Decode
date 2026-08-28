@@ -105,14 +105,28 @@ npm run lint      # oxlint
 Push this repo and import it in Vercel — the Vite framework preset is
 auto-detected (build command `npm run build`, output directory `dist`), and
 `api/scan-covert.ts` is auto-detected as a serverless function with no
-`vercel.json` needed. The only required step: set `ANTHROPIC_API_KEY` in the
-project's **Settings → Environment Variables**, then redeploy (an env var
-added after a deploy doesn't apply to it — the next deploy picks it up).
-`server/` is not used on Vercel at all; if `/api/scan-covert` 404s, the most
-likely cause is that `api/scan-covert.ts` isn't present in the deployed
-commit (check you're on a branch/commit that has it) rather than a missing
-env var — a missing/invalid key surfaces as a 502 from the function, not a
-404, since the function itself did get invoked.
+`vercel.json` needed. Set `ANTHROPIC_API_KEY` in the project's
+**Settings → Environment Variables**, then redeploy (an env var added after a
+deploy doesn't apply to it — the next deploy picks it up). `server/` is not
+used on Vercel at all.
+
+If a **personal** or **service-account** API key isn't scoped to a single
+workspace, Claude's API requires an `anthropic-workspace-id` header on every
+request and returns a 400 without it — see [`createAnthropicClient()`](server/scan.ts)
+and set `ANTHROPIC_WORKSPACE_ID` too (find the ID under Settings → Workspaces)
+if you hit that. A workspace-scoped key or a legacy workspace key doesn't
+need this.
+
+Debugging by symptom:
+- **404** on `/api/scan-covert` — the function isn't in the deployed commit
+  (check you're on a branch/commit that has `api/scan-covert.ts`).
+- **500 `FUNCTION_INVOCATION_FAILED`** with no detail on the page — check
+  the project's **Runtime Logs** in the Vercel dashboard for the actual
+  stack trace; the generic error page never shows it.
+- **400/502 with a JSON `error` message** — the function *is* running; the
+  message is Claude's API response verbatim (missing/invalid key, missing
+  workspace ID, etc.) and is also what the app's own "AI deep scan
+  unavailable" banner shows.
 
 ### Plain Node hosting (not Vercel)
 

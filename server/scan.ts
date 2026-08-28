@@ -54,6 +54,18 @@ export interface ScanResult {
   findings: AIFinding[];
 }
 
+/**
+ * Personal and service-account API keys that aren't scoped to a single
+ * workspace must send `anthropic-workspace-id` on every request (see
+ * https://platform.claude.com/docs/en/manage-claude/authentication#select-a-workspace).
+ * A workspace-scoped key doesn't need this — ANTHROPIC_WORKSPACE_ID is
+ * optional and only added when set.
+ */
+export function createAnthropicClient(): Anthropic {
+  const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID;
+  return new Anthropic(workspaceId ? { defaultHeaders: { 'anthropic-workspace-id': workspaceId } } : {});
+}
+
 export async function scanForCovertInstructions(client: Anthropic, text: string): Promise<ScanResult> {
   if (text.length > MAX_INPUT_CHARS) {
     throw new Error(`Input too long for deep scan (${text.length} chars, max ${MAX_INPUT_CHARS}).`);

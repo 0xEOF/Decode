@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import Anthropic from '@anthropic-ai/sdk';
-import { scanForCovertInstructions } from './scan.js';
+import type Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicClient, scanForCovertInstructions } from './scan.js';
 
 try {
   process.loadEnvFile();
@@ -18,7 +18,7 @@ app.use(express.json({ limit: '1mb' }));
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
-  if (!client) client = new Anthropic();
+  if (!client) client = createAnthropicClient();
   return client;
 }
 
