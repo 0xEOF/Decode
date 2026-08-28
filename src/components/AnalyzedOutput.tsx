@@ -22,6 +22,12 @@ function renderInlineFindings(text: string, findings: Finding[]): ReactNode[] {
           {text.slice(finding.start, finding.end)}
         </mark>,
       );
+    } else if (finding.type === 'covert-instruction') {
+      nodes.push(
+        <mark key={finding.id} className="mark--covert" title={finding.description}>
+          {text.slice(finding.start, finding.end)}
+        </mark>,
+      );
     }
     cursor = finding.end;
   }

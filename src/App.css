@@ -157,6 +157,13 @@ mark {
   color: var(--keyword);
 }
 
+.mark--covert {
+  background: var(--covert-bg);
+  color: var(--covert);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
 .empty-state {
   padding: 32px 16px;
   text-align: center;
@@ -190,6 +197,11 @@ mark {
 .stat-chip--keyword {
   background: var(--keyword-bg);
   color: var(--keyword);
+}
+
+.stat-chip--covert {
+  background: var(--covert-bg);
+  color: var(--covert);
 }
 
 .stat-chip--clean {

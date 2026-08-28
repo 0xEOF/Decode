@@ -84,6 +84,9 @@ function App() {
               {result.stats.hidden > 0 && (
                 <span className="stat-chip stat-chip--hidden">🔴 {result.stats.hidden} hidden</span>
               )}
+              {result.stats.covertInstruction > 0 && (
+                <span className="stat-chip stat-chip--covert">⚠️ {result.stats.covertInstruction} covert instruction{result.stats.covertInstruction === 1 ? '' : 's'}</span>
+              )}
               {result.stats.invisibleUnicode > 0 && (
                 <span className="stat-chip stat-chip--unicode">🟣 {result.stats.invisibleUnicode} invisible unicode</span>
               )}

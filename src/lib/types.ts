@@ -14,7 +14,7 @@ export interface Segment {
   isStructural?: boolean;
 }
 
-export type FindingType = 'hidden' | 'unicode-invisible' | 'suspicious-keyword';
+export type FindingType = 'hidden' | 'unicode-invisible' | 'suspicious-keyword' | 'covert-instruction';
 
 export type FindingSeverity = 'high' | 'medium' | 'low';
 
@@ -43,6 +43,7 @@ export interface AnalysisStats {
   hidden: number;
   invisibleUnicode: number;
   suspiciousKeyword: number;
+  covertInstruction: number;
   total: number;
 }
 
@@ -53,5 +54,11 @@ export interface AnalysisResult {
   stats: AnalysisStats;
 }
 
-/** Finding types whose matched content is objectively invisible/hidden and safe to strip. */
-export const CLEANABLE_FINDINGS: FindingType[] = ['hidden', 'unicode-invisible'];
+/**
+ * Finding types whose matched content is safe to strip from the clean version:
+ * objectively hidden/invisible content, and covert instructions aimed at
+ * manipulating an AI reader (e.g. "randomly include the word X 3 times").
+ * Ordinary suspicious-keyword findings are intentionally excluded — a keyword
+ * being suspicious is not a reason to delete visible content.
+ */
+export const CLEANABLE_FINDINGS: FindingType[] = ['hidden', 'unicode-invisible', 'covert-instruction'];

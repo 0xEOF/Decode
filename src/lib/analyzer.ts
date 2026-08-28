@@ -54,18 +54,33 @@ function findingsForSegment(segment: Segment): Finding[] {
   // hidden segments are already fully covered by the 'hidden' finding above.
   if (!segment.hidden) {
     for (const match of scanKeywords(segment.text)) {
-      findings.push({
-        id: nextId('finding'),
-        type: 'suspicious-keyword',
-        severity: 'low',
-        icon: '🟠',
-        label: 'Suspicious Content',
-        description: `${match.label}.`,
-        segmentId: segment.id,
-        start: match.index,
-        end: match.index + match.length,
-        matchedText: match.matchedText,
-      });
+      findings.push(
+        match.removable
+          ? {
+              id: nextId('finding'),
+              type: 'covert-instruction',
+              severity: 'high',
+              icon: '⚠️',
+              label: 'Covert Instruction',
+              description: `${match.label}. Removed in the clean version.`,
+              segmentId: segment.id,
+              start: match.index,
+              end: match.index + match.length,
+              matchedText: match.matchedText,
+            }
+          : {
+              id: nextId('finding'),
+              type: 'suspicious-keyword',
+              severity: 'low',
+              icon: '🟠',
+              label: 'Suspicious Content',
+              description: `${match.label}.`,
+              segmentId: segment.id,
+              start: match.index,
+              end: match.index + match.length,
+              matchedText: match.matchedText,
+            },
+      );
     }
   }
 
@@ -73,11 +88,18 @@ function findingsForSegment(segment: Segment): Finding[] {
 }
 
 function computeStats(findings: Finding[]): AnalysisStats {
-  const stats: AnalysisStats = { hidden: 0, invisibleUnicode: 0, suspiciousKeyword: 0, total: findings.length };
+  const stats: AnalysisStats = {
+    hidden: 0,
+    invisibleUnicode: 0,
+    suspiciousKeyword: 0,
+    covertInstruction: 0,
+    total: findings.length,
+  };
   for (const f of findings) {
     if (f.type === 'hidden') stats.hidden += 1;
     else if (f.type === 'unicode-invisible') stats.invisibleUnicode += 1;
     else if (f.type === 'suspicious-keyword') stats.suspiciousKeyword += 1;
+    else if (f.type === 'covert-instruction') stats.covertInstruction += 1;
   }
   return stats;
 }
