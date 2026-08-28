@@ -9,7 +9,7 @@
     "dev:full": "concurrently -n web,api -c blue,green \"npm:dev\" \"npm:server\"",
     "build": "tsc -b && vite build",
     "start": "npm run build && tsx server/index.ts",
-    "typecheck:server": "tsc --noEmit -p server/tsconfig.json",
+    "typecheck:server": "tsc --noEmit -p tsconfig.functions.json",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run"

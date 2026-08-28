@@ -46,9 +46,20 @@ src/lib/
 └── cleaner.ts       # builds the clean version from the analysis findings
 
 server/
-├── index.ts       # Express app: POST /api/scan-covert, serves the built frontend
-└── scan.ts        # the actual Claude API call (structured output, defensive prompt)
+├── index.ts       # Express app for local dev / traditional Node hosting: POST /api/scan-covert, serves the built frontend
+└── scan.ts        # the actual Claude API call (structured output, defensive prompt) — shared by both entry points below
+
+api/
+└── scan-covert.ts   # Vercel serverless function for the same endpoint, thin wrapper around server/scan.ts
 ```
+
+There are two entry points into `server/scan.ts` because Vercel doesn't run long-lived
+processes: it maps each file under `/api` to its own serverless function
+(`api/scan-covert.ts` → `POST /api/scan-covert`), invoked per-request. It never executes
+`server/index.ts`'s Express `app.listen()` at all. `server/index.ts` exists for local dev
+(`npm run dev:full`) and for deploying to a plain Node host instead of Vercel
+(`npm run start`) — pick whichever entry point matches where you're deploying; both call
+the same `scanForCovertInstructions()`.
 
 The cleaner operates on the analyzer's findings, not a regex pass over the
 raw input: only segments flagged `hidden`, characters flagged
@@ -89,7 +100,23 @@ npm run lint      # oxlint
 
 ## Deployment
 
-`npm run start` builds the frontend and runs the Express server, which both
-serves the built static files and handles `/api/scan-covert` — one process,
-one deployable unit. Set `ANTHROPIC_API_KEY` (and optionally `PORT`) in the
-environment; never commit a real key to `.env`.
+### Vercel
+
+Push this repo and import it in Vercel — the Vite framework preset is
+auto-detected (build command `npm run build`, output directory `dist`), and
+`api/scan-covert.ts` is auto-detected as a serverless function with no
+`vercel.json` needed. The only required step: set `ANTHROPIC_API_KEY` in the
+project's **Settings → Environment Variables**, then redeploy (an env var
+added after a deploy doesn't apply to it — the next deploy picks it up).
+`server/` is not used on Vercel at all; if `/api/scan-covert` 404s, the most
+likely cause is that `api/scan-covert.ts` isn't present in the deployed
+commit (check you're on a branch/commit that has it) rather than a missing
+env var — a missing/invalid key surfaces as a 502 from the function, not a
+404, since the function itself did get invoked.
+
+### Plain Node hosting (not Vercel)
+
+`npm run start` builds the frontend and runs the Express server (`server/index.ts`),
+which both serves the built static files and handles `/api/scan-covert` — one
+process, one deployable unit. Set `ANTHROPIC_API_KEY` (and optionally `PORT`) in
+the environment; never commit a real key to `.env`.
