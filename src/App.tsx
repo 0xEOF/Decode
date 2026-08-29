@@ -18,6 +18,29 @@ const PLACEHOLDER = `Paste text or rich content here to scan it for:
 Hidden/invisible-content checks run instantly in your browser. The visible text is also sent to our
 server for an AI deep scan that catches paraphrased covert instructions a fixed pattern list would miss.`;
 
+const FAQ = [
+  {
+    q: 'What is a hidden or covert prompt injection attack?',
+    a: "It's text embedded in a document that isn't meant to be read by a human — hidden via CSS, invisible Unicode characters, or a covert instruction addressed directly to an AI — designed to manipulate whichever AI system later reads, grades, or summarizes that document.",
+  },
+  {
+    q: 'How do I check if my essay or assignment has hidden text?',
+    a: 'Paste the text into the box above and click Analyze. Decode checks for CSS-hidden content, invisible Unicode characters, and covert AI-directed instructions, then highlights anything it finds directly in your text.',
+  },
+  {
+    q: 'Does my text get sent anywhere?',
+    a: 'Hidden-content and invisible-Unicode detection run entirely in your browser. Only the visible text is sent to our server for an AI deep scan that catches paraphrased covert instructions a fixed pattern list would miss — hidden content itself is never sent.',
+  },
+  {
+    q: 'Can teachers use this to check assignments or AI grading prompts?',
+    a: 'Yes — paste a student submission, an AI grading rubric, or any shared document to check for hidden instructions aimed at manipulating an AI grader before it processes the document.',
+  },
+  {
+    q: 'Is Decode free to use?',
+    a: 'Yes, the scanner is free with no signup required.',
+  },
+];
+
 function App() {
   const [rawText, setRawText] = useState('');
   const [pastedHtml, setPastedHtml] = useState<string | undefined>(undefined);
@@ -79,86 +102,139 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Hidden Text &amp; Content Scanner</h1>
-        <p>Paste → Analyze → See what's hidden → Copy a clean version.</p>
+        <p className="eyebrow">Free &middot; Client-side &middot; No signup</p>
+        <h1>Decode</h1>
+        <p className="tagline">
+          Hidden Text &amp; Prompt Injection Scanner — paste any text, essay prompt, or document and reveal what
+          isn't meant to be seen: hidden content, invisible Unicode, and covert instructions aimed at AI readers.
+        </p>
       </header>
 
-      <div className="panel">
-        <textarea
-          className="input-area"
-          value={rawText}
-          onChange={handleChange}
-          onPaste={handlePaste}
-          placeholder={PLACEHOLDER}
-          spellCheck={false}
-        />
-        <div className="toolbar">
-          <button type="button" className="btn btn-primary" onClick={handleAnalyze} disabled={!rawText.trim() || isDeepScanning}>
-            {isDeepScanning ? 'Analyzing…' : 'Analyze'}
-          </button>
-          <button type="button" className="btn" onClick={handleClear} disabled={!rawText && !result}>
-            Clear
-          </button>
-          {pastedHtml && <span className="hint hint--html">Rich-text/HTML clipboard content detected</span>}
-        </div>
-      </div>
-
-      {result && (
+      <main>
         <div className="panel">
-          <div className="panel-header">
-            <span>Analysis Results</span>
-            <div className="stats-row">
-              {result.stats.hidden > 0 && (
-                <span className="stat-chip stat-chip--hidden">🔴 {result.stats.hidden} hidden</span>
-              )}
-              {result.stats.covertInstruction > 0 && (
-                <span className="stat-chip stat-chip--covert">⚠️ {result.stats.covertInstruction} covert instruction{result.stats.covertInstruction === 1 ? '' : 's'}</span>
-              )}
-              {result.stats.invisibleUnicode > 0 && (
-                <span className="stat-chip stat-chip--unicode">🟣 {result.stats.invisibleUnicode} invisible unicode</span>
-              )}
-              {result.stats.suspiciousKeyword > 0 && (
-                <span className="stat-chip stat-chip--keyword">🟠 {result.stats.suspiciousKeyword} suspicious</span>
-              )}
-              {result.stats.total === 0 && !isDeepScanning && <span className="stat-chip stat-chip--clean">✓ clean</span>}
-              {isDeepScanning && <span className="stat-chip stat-chip--scanning">🔎 running AI deep scan…</span>}
-            </div>
-          </div>
-
-          {aiError && (
-            <div className="ai-error-banner">
-              AI deep scan unavailable — showing local checks only. <span>{aiError}</span>
-            </div>
-          )}
-
-          <AnalyzedOutput result={result} />
-
-          <div className="panel-header">
-            <span>{result.stats.total} finding{result.stats.total === 1 ? '' : 's'} detected</span>
-          </div>
-          <FindingsList findings={result.findings} />
-
-          <div className="copy-bar">
-            <CopyCleanButton cleanText={cleanText} />
-            <button type="button" className="toggle-link" onClick={() => setShowPreview((v) => !v)}>
-              {showPreview ? 'Hide clean version preview' : 'Preview clean version'}
+          <label htmlFor="scan-input" className="sr-only">
+            Text to scan for hidden content
+          </label>
+          <textarea
+            id="scan-input"
+            className="input-area"
+            value={rawText}
+            onChange={handleChange}
+            onPaste={handlePaste}
+            placeholder={PLACEHOLDER}
+            spellCheck={false}
+          />
+          <div className="toolbar">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleAnalyze}
+              disabled={!rawText.trim() || isDeepScanning}
+            >
+              {isDeepScanning ? 'Analyzing…' : 'Analyze'}
             </button>
-            <p>The original analyzed content above is never changed — the clean version is a separate copy.</p>
+            <button type="button" className="btn" onClick={handleClear} disabled={!rawText && !result}>
+              Clear
+            </button>
+            {pastedHtml && <span className="hint hint--html">Rich-text/HTML clipboard content detected</span>}
           </div>
-
-          {showPreview && (
-            <div className="clean-preview">
-              <textarea readOnly value={cleanText} onFocus={(e) => e.currentTarget.select()} />
-            </div>
-          )}
         </div>
-      )}
 
-      <p className="footnote">
+        {result && (
+          <div className="panel">
+            <div className="panel-header">
+              <span>Analysis Results</span>
+              <div className="stats-row">
+                {result.stats.hidden > 0 && (
+                  <span className="stat-chip stat-chip--hidden">🔴 {result.stats.hidden} hidden</span>
+                )}
+                {result.stats.covertInstruction > 0 && (
+                  <span className="stat-chip stat-chip--covert">
+                    ⚠️ {result.stats.covertInstruction} covert instruction{result.stats.covertInstruction === 1 ? '' : 's'}
+                  </span>
+                )}
+                {result.stats.invisibleUnicode > 0 && (
+                  <span className="stat-chip stat-chip--unicode">
+                    🟣 {result.stats.invisibleUnicode} invisible unicode
+                  </span>
+                )}
+                {result.stats.suspiciousKeyword > 0 && (
+                  <span className="stat-chip stat-chip--keyword">🟠 {result.stats.suspiciousKeyword} suspicious</span>
+                )}
+                {result.stats.total === 0 && !isDeepScanning && (
+                  <span className="stat-chip stat-chip--clean">✓ clean</span>
+                )}
+                {isDeepScanning && <span className="stat-chip stat-chip--scanning">🔎 running AI deep scan…</span>}
+              </div>
+            </div>
+
+            {aiError && (
+              <div className="ai-error-banner">
+                AI deep scan unavailable — showing local checks only. <span>{aiError}</span>
+              </div>
+            )}
+
+            <AnalyzedOutput result={result} />
+
+            <div className="panel-header">
+              <span>
+                {result.stats.total} finding{result.stats.total === 1 ? '' : 's'} detected
+              </span>
+            </div>
+            <FindingsList findings={result.findings} />
+
+            <div className="copy-bar">
+              <CopyCleanButton cleanText={cleanText} />
+              <button type="button" className="toggle-link" onClick={() => setShowPreview((v) => !v)}>
+                {showPreview ? 'Hide clean version preview' : 'Preview clean version'}
+              </button>
+              <p>The original analyzed content above is never changed — the clean version is a separate copy.</p>
+            </div>
+
+            {showPreview && (
+              <div className="clean-preview">
+                <textarea readOnly value={cleanText} onFocus={(e) => e.currentTarget.select()} />
+              </div>
+            )}
+          </div>
+        )}
+
+        <section className="content-section" aria-labelledby="how-it-works-heading">
+          <h2 id="how-it-works-heading">How Decode works</h2>
+          <ol className="steps">
+            <li>
+              <strong>Paste</strong> — drop in an essay prompt, assignment, shared doc, or any pasted text or
+              rich-text/HTML content.
+            </li>
+            <li>
+              <strong>Analyze</strong> — Decode checks locally for CSS-hidden content and invisible Unicode
+              characters, then runs an AI deep scan for covert instructions a fixed pattern list would miss.
+            </li>
+            <li>
+              <strong>Review &amp; copy clean</strong> — see exactly what was hidden, right inside your text, then
+              copy a clean version with only the hidden/covert content removed.
+            </li>
+          </ol>
+        </section>
+
+        <section className="content-section" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">Frequently asked questions</h2>
+          <dl className="faq-list">
+            {FAQ.map((item) => (
+              <div className="faq-item" key={item.q}>
+                <dt>{item.q}</dt>
+                <dd>{item.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </main>
+
+      <footer className="footnote">
         Hidden/invisible-content detection runs entirely in your browser. Visible text is also sent to our server
         for an AI deep scan for covert instructions — this tool exposes hidden content, it does not censor visible
         content.
-      </p>
+      </footer>
     </div>
   );
 }

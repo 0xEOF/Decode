@@ -1,4 +1,4 @@
-# Hidden Text & Content Scanner (MVP)
+# Decode — Hidden Text & Content Scanner (MVP)
 
 A web app that scans pasted text or rich-text/HTML content for:
 
@@ -97,6 +97,28 @@ npm run build      # typecheck + production build
 npm run typecheck:server  # typecheck the Express server
 npm run lint      # oxlint
 ```
+
+## SEO
+
+`index.html` has full metadata: title, description, canonical link, Open
+Graph/Twitter cards, and `SoftwareApplication`/`FAQPage` JSON-LD structured
+data. `public/robots.txt` and `public/sitemap.xml` are served as static
+files. **Before going live**, replace every occurrence of
+`https://REPLACE-WITH-YOUR-DOMAIN.com` (in `index.html`, `public/robots.txt`,
+`public/sitemap.xml`) with your real production domain — canonical/OG URLs
+and the sitemap are invalid (and actively hurt ranking) if left as a
+placeholder:
+
+```sh
+grep -rl 'REPLACE-WITH-YOUR-DOMAIN' index.html public/robots.txt public/sitemap.xml \
+  | xargs sed -i 's#https://REPLACE-WITH-YOUR-DOMAIN.com#https://your-real-domain.com#g'
+```
+
+`public/og-image.png` (1200×630) is what link previews show on social/chat
+apps; `public/favicon.svg` is the source icon the other favicon sizes
+(`favicon-16/32.png`, `apple-touch-icon.png`, `icon-192/512.png`) were
+rendered from — regenerate them with any SVG-to-PNG tool if you change the
+icon design.
 
 ## Deployment
 
