@@ -25,6 +25,24 @@
   --success: #16a34a;
   --success-bg: rgba(22, 163, 74, 0.12);
 
+  /* App shell: per-course and per-event-type colors, used by Calendar/Today/Kanban. */
+  --class-1: #2563eb;
+  --class-1-bg: rgba(37, 99, 235, 0.12);
+  --class-2: #059669;
+  --class-2-bg: rgba(5, 150, 105, 0.12);
+  --class-3: #d97706;
+  --class-3-bg: rgba(217, 119, 6, 0.12);
+  --class-4: #db2777;
+  --class-4-bg: rgba(219, 39, 119, 0.12);
+  --type-work: #64748b;
+  --type-work-bg: rgba(100, 116, 139, 0.12);
+  --type-appointment: #0891b2;
+  --type-appointment-bg: rgba(8, 145, 178, 0.12);
+  --type-study: var(--accent);
+  --type-study-bg: var(--accent-bg);
+  --type-exam: var(--hidden);
+  --type-exam-bg: var(--hidden-bg);
+
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 }
@@ -65,6 +83,19 @@
     --success: #4ade80;
     --success-bg: rgba(74, 222, 128, 0.14);
     --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+    --class-1: #60a5fa;
+    --class-1-bg: rgba(96, 165, 250, 0.16);
+    --class-2: #34d399;
+    --class-2-bg: rgba(52, 211, 153, 0.16);
+    --class-3: #fbbf24;
+    --class-3-bg: rgba(251, 191, 36, 0.16);
+    --class-4: #f472b6;
+    --class-4-bg: rgba(244, 114, 182, 0.16);
+    --type-work: #94a3b8;
+    --type-work-bg: rgba(148, 163, 184, 0.16);
+    --type-appointment: #22d3ee;
+    --type-appointment-bg: rgba(34, 211, 238, 0.16);
   }
 }
 

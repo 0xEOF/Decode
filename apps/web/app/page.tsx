@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import './decode.css';
 import ScannerTool from './components/ScannerTool';
 
@@ -67,6 +68,12 @@ export default function HomePage() {
           Hidden Text &amp; Prompt Injection Scanner — paste any text, essay prompt, or document and reveal what
           isn&apos;t meant to be seen: hidden content, invisible Unicode, and covert instructions aimed at AI
           readers.
+        </p>
+        <p className="tagline" style={{ marginTop: 12 }}>
+          Decode is also the integrity check inside a bigger project we&apos;re building —{' '}
+          <Link href="/app/today" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+            preview the AI Student Success Assistant →
+          </Link>
         </p>
       </header>
 

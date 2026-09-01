@@ -1,0 +1,91 @@
+'use client';
+
+import type { TaskStatus } from '@decode/scheduling-engine';
+import { useState, type DragEvent } from 'react';
+import { useAppData } from '../AppDataProvider';
+import { colorBgVar, colorVar, taskColorKey } from '../../../lib/colors';
+import { formatDuration, formatMonthDay } from '../../../lib/format';
+import type { AppTask } from '../../../lib/types';
+
+const COLUMNS: Array<{ status: TaskStatus; label: string }> = [
+  { status: 'BACKLOG', label: 'Backlog' },
+  { status: 'TODO', label: 'To Do' },
+  { status: 'IN_PROGRESS', label: 'In Progress' },
+  { status: 'DONE', label: 'Done' },
+];
+
+export default function TasksView() {
+  const { tasks, setTaskStatus, getCourse, now } = useAppData();
+  const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>, status: TaskStatus) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text/plain');
+    if (taskId) setTaskStatus(taskId, status);
+    setDragOverColumn(null);
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h1>Tasks</h1>
+        <p>Drag a card to change its status. Moving a task off Done re-runs the scheduling engine.</p>
+      </div>
+
+      <div className="kanban-board">
+        {COLUMNS.map((column) => {
+          const columnTasks = tasks.filter((task) => task.status === column.status);
+          return (
+            <div
+              key={column.status}
+              className={`kanban-column${dragOverColumn === column.status ? ' drag-over' : ''}`}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragOverColumn(column.status);
+              }}
+              onDragLeave={() => setDragOverColumn((current) => (current === column.status ? null : current))}
+              onDrop={(event) => handleDrop(event, column.status)}
+            >
+              <div className="kanban-column-header">
+                <span>{column.label}</span>
+                <span className="kanban-count">{columnTasks.length}</span>
+              </div>
+
+              {columnTasks.map((task) => (
+                <TaskCard key={task.id} task={task} now={now} courseCode={getCourse(task.courseId)?.code} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TaskCard({ task, now, courseCode }: { task: AppTask; now: Date; courseCode?: string }) {
+  const colorKey = taskColorKey(task);
+  const overdue = task.status !== 'DONE' && task.dueDate < now;
+
+  return (
+    <div
+      className="task-card"
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData('text/plain', task.id);
+        event.dataTransfer.effectAllowed = 'move';
+      }}
+    >
+      <p className="task-card-title">{task.title}</p>
+      <div className="task-card-meta">
+        <span className="type-badge" style={{ background: colorBgVar(colorKey), color: colorVar(colorKey) }}>
+          {task.type}
+        </span>
+        {courseCode && <span>{courseCode}</span>}
+        <span>{formatDuration(task.estimatedMinutes)}</span>
+        <span style={overdue ? { color: 'var(--hidden)', fontWeight: 600 } : undefined}>
+          {overdue ? 'Overdue' : `Due ${formatMonthDay(task.dueDate)}`}
+        </span>
+      </div>
+    </div>
+  );
+}
