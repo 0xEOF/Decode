@@ -2,7 +2,7 @@
 
 import { computePriorityScore } from '@decode/scheduling-engine';
 import Link from 'next/link';
-import { useAppData } from '../AppDataProvider';
+import { useAppData } from '../../AppDataProvider';
 import { colorVar, fixedEventColorKey, taskColorKey } from '../../../lib/colors';
 import { daysUntil, formatDuration, formatTime, formatWeekday, isSameUtcDay } from '../../../lib/format';
 import { mergeAdjacentBlocks } from '../../../lib/schedule';
@@ -16,7 +16,7 @@ interface TimelineItem {
 }
 
 export default function TodayView() {
-  const { tasks, fixedEvents, scheduleResult, workload, now, getCourse } = useAppData();
+  const { studentName, tasks, fixedEvents, scheduleResult, workload, now, getCourse } = useAppData();
 
   const todaysEvents: TimelineItem[] = fixedEvents
     .filter((event) => isSameUtcDay(event.start, now))
@@ -55,7 +55,7 @@ export default function TodayView() {
 
   return (
     <div>
-      <h1 className="today-greeting">Good morning, George</h1>
+      <h1 className="today-greeting">Good morning, {studentName}</h1>
       <p className="today-date">{formatWeekday(now)} — this is a preview built from sample semester data</p>
 
       <div className="today-layout">

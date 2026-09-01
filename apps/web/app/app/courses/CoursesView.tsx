@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useAppData } from '../AppDataProvider';
+import { useAppData } from '../../AppDataProvider';
 import { colorVar } from '../../../lib/colors';
 import { formatMeetingDays, formatTimeRange12h } from '../../../lib/format';
 

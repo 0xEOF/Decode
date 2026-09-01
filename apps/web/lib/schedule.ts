@@ -1,5 +1,5 @@
 import { computeWorkload, scheduleTasks } from '@decode/scheduling-engine';
-import type { ScheduledBlock } from '@decode/scheduling-engine';
+import type { FixedEvent, ScheduledBlock, SchedulingPreferences } from '@decode/scheduling-engine';
 import type { AppTask } from './types';
 import { FIXED_EVENTS, MOCK_NOW, PREFERENCES } from './mock-data';
 
@@ -14,14 +14,19 @@ import { FIXED_EVENTS, MOCK_NOW, PREFERENCES } from './mock-data';
 const MAX_TOTAL_MINUTES_PER_DAY = 600; // 10 waking hours of commitments + study
 
 /**
- * Runs the real `@decode/scheduling-engine` against `tasks` (and the fixed
- * mock calendar). Called fresh whenever task state changes — e.g. a Kanban
- * status change — so the computed schedule always reflects current state,
+ * Runs the real `@decode/scheduling-engine` against `tasks`/`fixedEvents`/
+ * `preferences` (defaulting to the mock fixtures). Called fresh whenever any
+ * of those change — a Kanban status change, an onboarding update, a new
+ * imported task — so the computed schedule always reflects current state,
  * matching ROADMAP.md §10's "completing a task triggers a recalculation."
  */
-export function computeSchedule(tasks: AppTask[]) {
-  const scheduleResult = scheduleTasks(tasks, FIXED_EVENTS, PREFERENCES, MOCK_NOW);
-  const workload = computeWorkload(FIXED_EVENTS, scheduleResult.scheduled, MAX_TOTAL_MINUTES_PER_DAY);
+export function computeSchedule(
+  tasks: AppTask[],
+  fixedEvents: FixedEvent[] = FIXED_EVENTS,
+  preferences: SchedulingPreferences = PREFERENCES,
+) {
+  const scheduleResult = scheduleTasks(tasks, fixedEvents, preferences, MOCK_NOW);
+  const workload = computeWorkload(fixedEvents, scheduleResult.scheduled, MAX_TOTAL_MINUTES_PER_DAY);
   return { scheduleResult, workload };
 }
 

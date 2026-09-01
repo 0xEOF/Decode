@@ -1,6 +1,6 @@
 'use client';
 
-import { useAppData } from '../AppDataProvider';
+import { useAppData } from '../../AppDataProvider';
 import { formatMonthDay } from '../../../lib/format';
 import type { AppTask } from '../../../lib/types';
 

@@ -24,12 +24,46 @@ function startOfWeek(date: Date): Date {
 export const WEEK_START = startOfWeek(MOCK_NOW);
 
 /** `dayOffset` is 0 = the Monday of MOCK_NOW's week, 1 = Tuesday, ... 13 = the Sunday after next. */
-function dateAt(dayOffset: number, hhmm: string): Date {
+export function dateAt(dayOffset: number, hhmm: string): Date {
   const [hours, minutes] = hhmm.split(':').map(Number);
   const result = new Date(WEEK_START);
   result.setUTCDate(result.getUTCDate() + dayOffset);
   result.setUTCHours(hours, minutes, 0, 0);
   return result;
+}
+
+export const HORIZON_DAYS = 14;
+
+export interface RecurringEventInput {
+  /** FixedEvent ids are `${idPrefix}-${dayOffset}` — class-event color lookup (colors.ts) parses a course id back out of this for `type: 'class'`, so pass `class-${course.id}` there. */
+  idPrefix: string;
+  title: string;
+  type: FixedEvent['type'];
+  /** 0 = Monday ... 6 = Sunday. */
+  days: number[];
+  startTime: string;
+  endTime: string;
+}
+
+/** Expands recurring weekly commitments (classes, work shifts, personal activities) into concrete FixedEvents across the HORIZON_DAYS window — the "materialize recurring commitments" step types.ts's timezone note asks the caller to do. */
+export function materializeRecurringEvents(items: RecurringEventInput[]): FixedEvent[] {
+  const events: FixedEvent[] = [];
+  for (const item of items) {
+    for (let week = 0; week * 7 < HORIZON_DAYS; week++) {
+      for (const day of item.days) {
+        const dayOffset = week * 7 + day;
+        if (dayOffset >= HORIZON_DAYS) continue;
+        events.push({
+          id: `${item.idPrefix}-${dayOffset}`,
+          title: item.title,
+          type: item.type,
+          start: dateAt(dayOffset, item.startTime),
+          end: dateAt(dayOffset, item.endTime),
+        });
+      }
+    }
+  }
+  return events;
 }
 
 export const COURSES: Course[] = [
@@ -90,73 +124,29 @@ export const COURSES: Course[] = [
   },
 ];
 
-const HORIZON_DAYS = 14;
-
-function materializeClassEvents(): FixedEvent[] {
-  const events: FixedEvent[] = [];
-  for (const course of COURSES) {
-    for (let week = 0; week * 7 < HORIZON_DAYS; week++) {
-      for (const day of course.meetingDays) {
-        const dayOffset = week * 7 + day;
-        if (dayOffset >= HORIZON_DAYS) continue;
-        events.push({
-          id: `class-${course.id}-${dayOffset}`,
-          title: `${course.code} — Class`,
-          type: 'class',
-          start: dateAt(dayOffset, course.startTime),
-          end: dateAt(dayOffset, course.endTime),
-        });
-      }
-    }
-  }
-  return events;
+export function materializeClassEvents(courses: Course[]): FixedEvent[] {
+  return materializeRecurringEvents(
+    courses.map((course) => ({
+      idPrefix: `class-${course.id}`,
+      title: `${course.code} — Class`,
+      type: 'class',
+      days: course.meetingDays,
+      startTime: course.startTime,
+      endTime: course.endTime,
+    })),
+  );
 }
 
-function materializeWorkEvents(): FixedEvent[] {
-  const shifts: Array<{ day: number; start: string; end: string }> = [
-    { day: 4, start: '15:00', end: '19:00' }, // Friday
-    { day: 5, start: '10:00', end: '16:00' }, // Saturday
-  ];
-  const events: FixedEvent[] = [];
-  for (let week = 0; week * 7 < HORIZON_DAYS; week++) {
-    for (const shift of shifts) {
-      const dayOffset = week * 7 + shift.day;
-      if (dayOffset >= HORIZON_DAYS) continue;
-      events.push({
-        id: `work-${dayOffset}`,
-        title: 'Work — Campus Library Circulation Desk',
-        type: 'work',
-        start: dateAt(dayOffset, shift.start),
-        end: dateAt(dayOffset, shift.end),
-      });
-    }
-  }
-  return events;
-}
-
-function materializePersonalEvents(): FixedEvent[] {
-  const events: FixedEvent[] = [];
-  for (let week = 0; week * 7 < HORIZON_DAYS; week++) {
-    // Mon/Wed only — Friday is a work day (15:00-19:00), so gym skips it to avoid a conflict.
-    for (const day of [0, 2]) {
-      const dayOffset = week * 7 + day;
-      if (dayOffset >= HORIZON_DAYS) continue;
-      events.push({
-        id: `gym-${dayOffset}`,
-        title: 'Gym — IMA',
-        type: 'appointment',
-        start: dateAt(dayOffset, '17:00'),
-        end: dateAt(dayOffset, '18:00'),
-      });
-    }
-  }
-  return events;
-}
+// Mon/Wed only for gym — Friday is a work day (15:00-19:00), so gym skips it to avoid a conflict.
+const DEFAULT_WORK_AND_PERSONAL: RecurringEventInput[] = [
+  { idPrefix: 'work', title: 'Work — Campus Library Circulation Desk', type: 'work', days: [4], startTime: '15:00', endTime: '19:00' },
+  { idPrefix: 'work', title: 'Work — Campus Library Circulation Desk', type: 'work', days: [5], startTime: '10:00', endTime: '16:00' },
+  { idPrefix: 'gym', title: 'Gym — IMA', type: 'appointment', days: [0, 2], startTime: '17:00', endTime: '18:00' },
+];
 
 export const FIXED_EVENTS: FixedEvent[] = [
-  ...materializeClassEvents(),
-  ...materializeWorkEvents(),
-  ...materializePersonalEvents(),
+  ...materializeClassEvents(COURSES),
+  ...materializeRecurringEvents(DEFAULT_WORK_AND_PERSONAL),
 ].sort((a, b) => a.start.getTime() - b.start.getTime());
 
 export const TASKS: AppTask[] = [
@@ -271,11 +261,16 @@ export const TASKS: AppTask[] = [
   },
 ];
 
+/** Builds the `availableWindows` a SchedulingPreferences needs from a daily earliest/latest study time — used by both the default mock preferences below and the Onboarding wizard. */
+export function buildAvailableWindows(earliestTime: string, latestTime: string) {
+  return Array.from({ length: HORIZON_DAYS }, (_, dayOffset) => ({
+    start: dateAt(dayOffset, earliestTime),
+    end: dateAt(dayOffset, latestTime),
+  }));
+}
+
 export const PREFERENCES: SchedulingPreferences = {
-  availableWindows: Array.from({ length: HORIZON_DAYS }, (_, dayOffset) => ({
-    start: dateAt(dayOffset, '07:00'),
-    end: dateAt(dayOffset, '23:00'),
-  })),
+  availableWindows: buildAvailableWindows('07:00', '23:00'),
   minSessionMinutes: 20,
   preferredSessionMinutes: 50,
   breakMinutes: 10,

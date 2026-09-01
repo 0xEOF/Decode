@@ -11,13 +11,16 @@ const PLACEHOLDER_REPLY =
   "This preview doesn't have a live AI connection yet — the assistant needs auth + a database to know your real schedule before it can act on it (see ROADMAP.md §13–§16). Once that's wired up, this panel will handle things like \"move my ECON study session to Thursday\" for real.";
 
 /**
- * Persistent side panel, reachable from every /app screen — not a nav tab.
- * See ROADMAP.md §13: "what should I work on right now" needs to be
- * answerable from wherever the student already is. Tool-calling is Phase
- * "Days 11-12" work that needs a real backend first, so this is a UI shell
- * with an honest placeholder reply rather than a fake live assistant.
+ * Persistent AI assistant, reachable from every /app screen — not a nav tab
+ * (ROADMAP.md §13). Idle state is a small pulsing launcher pinned to the
+ * bottom-right corner; clicking it expands into a floating chat card
+ * anchored to the same corner, Intercom/Messenger-widget style, rather than
+ * a full-height drawer. Tool-calling is Phase "Days 11-12" work that needs a
+ * real backend first, so replies are an honest placeholder, not a fake live
+ * assistant.
  */
-export default function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AssistantWidget() {
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
 
@@ -31,11 +34,20 @@ export default function AssistantPanel({ open, onClose }: { open: boolean; onClo
 
   return (
     <>
-      {open && <button className="assistant-scrim" aria-label="Close AI assistant" onClick={onClose} />}
+      <button
+        type="button"
+        className={`assistant-launcher${open ? ' open' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-label={open ? 'Close AI assistant' : 'Open AI assistant'}
+        aria-expanded={open}
+      >
+        {open ? '✕' : '✨'}
+      </button>
+
       <aside className={`assistant-panel${open ? ' open' : ''}`} aria-hidden={!open}>
         <div className="assistant-panel-header">
           <h2>AI Assistant</h2>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close AI assistant">
+          <button type="button" className="icon-button" onClick={() => setOpen(false)} aria-label="Close AI assistant">
             ✕
           </button>
         </div>

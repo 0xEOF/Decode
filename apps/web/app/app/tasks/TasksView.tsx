@@ -2,10 +2,11 @@
 
 import type { TaskStatus } from '@decode/scheduling-engine';
 import { useState, type DragEvent } from 'react';
-import { useAppData } from '../AppDataProvider';
+import { useAppData } from '../../AppDataProvider';
 import { colorBgVar, colorVar, taskColorKey } from '../../../lib/colors';
 import { formatDuration, formatMonthDay } from '../../../lib/format';
 import type { AppTask } from '../../../lib/types';
+import TaskFormModal from '../components/TaskFormModal';
 
 const COLUMNS: Array<{ status: TaskStatus; label: string }> = [
   { status: 'BACKLOG', label: 'Backlog' },
@@ -17,6 +18,7 @@ const COLUMNS: Array<{ status: TaskStatus; label: string }> = [
 export default function TasksView() {
   const { tasks, setTaskStatus, getCourse, now } = useAppData();
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
+  const [addingToColumn, setAddingToColumn] = useState<TaskStatus | null>(null);
 
   const handleDrop = (event: DragEvent<HTMLDivElement>, status: TaskStatus) => {
     event.preventDefault();
@@ -54,10 +56,21 @@ export default function TasksView() {
               {columnTasks.map((task) => (
                 <TaskCard key={task.id} task={task} now={now} courseCode={getCourse(task.courseId)?.code} />
               ))}
+
+              <button type="button" className="add-task-button" onClick={() => setAddingToColumn(column.status)}>
+                + Add Task
+              </button>
             </div>
           );
         })}
       </div>
+
+      <TaskFormModal
+        key={addingToColumn ?? 'closed'}
+        open={addingToColumn !== null}
+        onClose={() => setAddingToColumn(null)}
+        defaultStatus={addingToColumn ?? undefined}
+      />
     </div>
   );
 }

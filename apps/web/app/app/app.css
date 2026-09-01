@@ -124,35 +124,72 @@ button.button-secondary:hover {
   font-size: 14px;
 }
 
-/* Assistant side panel -------------------------------------------------- */
+/* Assistant floating launcher + panel ------------------------------------ */
 
-.assistant-scrim {
+.assistant-launcher {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   border: none;
-  z-index: 20;
-  cursor: default;
+  background: var(--accent);
+  color: white;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 30;
+  animation: assistant-pulse 2.4s ease-in-out infinite;
+  transition: transform 0.15s ease;
+}
+
+.assistant-launcher:hover {
+  transform: scale(1.06);
+}
+
+.assistant-launcher.open {
+  animation: none;
+}
+
+@keyframes assistant-pulse {
+  0%,
+  100% {
+    box-shadow: var(--shadow), 0 0 0 0 var(--accent-bg);
+  }
+  50% {
+    box-shadow: var(--shadow), 0 0 0 12px transparent;
+  }
 }
 
 .assistant-panel {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(380px, 100vw);
+  bottom: 92px;
+  right: 24px;
+  width: min(380px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 140px));
   background: var(--bg-panel);
-  border-left: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.2s ease;
-  z-index: 21;
+  overflow: hidden;
+  transform-origin: bottom right;
+  transform: scale(0.92) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  z-index: 29;
 }
 
 .assistant-panel.open {
-  transform: translateX(0);
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .assistant-panel-header {
@@ -161,6 +198,7 @@ button.button-secondary:hover {
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .assistant-panel-header h2 {
@@ -425,6 +463,12 @@ button.button-secondary:hover {
   position: relative;
   border-left: 1px solid var(--border);
   background-image: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent var(--hour-height, 48px));
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.calendar-day-column.drag-over {
+  background-color: var(--accent-bg);
 }
 
 .calendar-block {
@@ -437,6 +481,15 @@ button.button-secondary:hover {
   line-height: 1.35;
   overflow: hidden;
   border: 1px solid transparent;
+  cursor: default;
+}
+
+.calendar-block.draggable {
+  cursor: grab;
+}
+
+.calendar-block.draggable:active {
+  cursor: grabbing;
 }
 
 .calendar-block strong {
@@ -693,4 +746,239 @@ button.button-secondary:hover {
   font-size: 14px;
   padding: 40px 0;
   text-align: center;
+}
+
+/* Add Task modal ---------------------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 40;
+}
+
+.modal-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  width: min(440px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-h);
+}
+
+.modal-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.form-field input,
+.form-field select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font: 14px inherit;
+  font-weight: 400;
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: 2px solid var(--accent-border);
+  outline-offset: -1px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.add-task-button {
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 8px;
+  padding: 8px;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.add-task-button:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/* Syllabus upload + Import Review ----------------------------------------- */
+
+.upload-dropzone {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-panel);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.upload-dropzone p {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.drag-over {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.import-success {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.import-review-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 20px 0 12px;
+}
+
+.decode-banner {
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.decode-banner--warning {
+  background: var(--covert-bg);
+  border-color: var(--covert);
+  color: var(--covert);
+}
+
+.decode-banner--clean {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.decode-finding-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.decode-finding-row {
+  display: flex;
+  gap: 10px;
+  font-weight: 400;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.decode-finding-row strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.decode-finding-row p {
+  margin: 2px 0 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.decode-finding-row code {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--code-bg);
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+
+.extracted-event-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.extracted-event-title {
+  font-weight: 600;
+  color: var(--text-h);
+  flex: 1;
+}
+
+.extracted-event-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
 }

@@ -73,6 +73,10 @@ export default function HomePage() {
           Decode is also the integrity check inside a bigger project we&apos;re building —{' '}
           <Link href="/app/today" style={{ color: 'var(--accent)', fontWeight: 600 }}>
             preview the AI Student Success Assistant →
+          </Link>{' '}
+          or{' '}
+          <Link href="/onboarding" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+            set up your own semester first →
           </Link>
         </p>
       </header>

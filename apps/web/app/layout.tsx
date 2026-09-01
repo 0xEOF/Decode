@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { AppDataProvider } from './AppDataProvider';
 
 // TODO: replace with the real production domain before/at launch — canonical,
 // Open Graph, and the sitemap all need an absolute URL to be valid. See
@@ -59,7 +60,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppDataProvider>{children}</AppDataProvider>
+      </body>
     </html>
   );
 }

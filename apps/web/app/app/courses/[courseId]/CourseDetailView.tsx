@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useAppData } from '../../AppDataProvider';
+import { useAppData } from '../../../AppDataProvider';
 import { colorVar } from '../../../../lib/colors';
 import { formatDuration, formatMeetingDays, formatMonthDay, formatTimeRange12h } from '../../../../lib/format';
+import UploadSyllabusFlow from '../../components/UploadSyllabusFlow';
 
 type Tab = 'overview' | 'assignments' | 'exams' | 'documents' | 'ai-policy';
 
@@ -103,12 +104,7 @@ export default function CourseDetailView({ courseId }: { courseId: string }) {
         </div>
       )}
 
-      {tab === 'documents' && (
-        <p className="empty-state">
-          No documents uploaded yet. Once syllabus upload (ROADMAP.md §3) is wired up, extracted deadlines and any
-          Decode-flagged hidden content will show up here for review before import.
-        </p>
-      )}
+      {tab === 'documents' && <UploadSyllabusFlow courseId={course.id} courseCode={course.code} />}
 
       {tab === 'ai-policy' && <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--text)' }}>{course.aiPolicy}</p>}
     </div>

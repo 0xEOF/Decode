@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './app.css';
-import { AppDataProvider } from './AppDataProvider';
 import AppShell from './components/AppShell';
 
 export const metadata: Metadata = {
@@ -9,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AppLayout({ children }: LayoutProps<'/app'>) {
-  return (
-    <AppDataProvider>
-      <AppShell>{children}</AppShell>
-    </AppDataProvider>
-  );
+  return <AppShell>{children}</AppShell>;
 }

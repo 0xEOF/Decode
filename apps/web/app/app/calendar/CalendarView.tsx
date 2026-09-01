@@ -1,22 +1,27 @@
 'use client';
 
-import type { CSSProperties } from 'react';
-import { useAppData } from '../AppDataProvider';
+import type { CSSProperties, DragEvent, MouseEvent } from 'react';
+import { useState } from 'react';
+import { useAppData } from '../../AppDataProvider';
 import { colorBgVar, colorVar, fixedEventColorKey, taskColorKey } from '../../../lib/colors';
 import { WEEK_START } from '../../../lib/mock-data';
-import { formatMonthDay, formatTime, formatWeekdayShort, isSameUtcDay } from '../../../lib/format';
+import { dateKey, formatMonthDay, formatTime, formatWeekdayShort, isSameUtcDay } from '../../../lib/format';
 import { mergeAdjacentBlocks } from '../../../lib/schedule';
+import TaskFormModal from '../components/TaskFormModal';
 
 const GRID_START_HOUR = 6;
 const GRID_END_HOUR = 23;
 const HOUR_HEIGHT = 64;
 const GRID_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * HOUR_HEIGHT;
+const SNAP_MINUTES = 15;
 
 interface CalendarItem {
   start: Date;
   end: Date;
   title: string;
   colorKey: string;
+  /** Present only for scheduled study blocks — what makes them draggable and lets a drop target the right task/original-slot. */
+  drag?: { taskId: string; originalStartIso: string };
 }
 
 function weekDays(): Date[] {
@@ -51,10 +56,10 @@ const LEGEND: Array<{ label: string; colorKey: string }> = [
 ];
 
 export default function CalendarView() {
-  const { tasks, fixedEvents, scheduleResult, now, getCourse } = useAppData();
+  const { tasks, fixedEvents, scheduleResult, now, getCourse, moveScheduledBlock } = useAppData();
   const days = weekDays();
-  const weekEnd = new Date(WEEK_START);
-  weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [addTaskDate, setAddTaskDate] = useState<Date | null>(null);
 
   const mergedBlocks = mergeAdjacentBlocks(scheduleResult.scheduled);
 
@@ -73,18 +78,47 @@ export default function CalendarView() {
           end: block.end,
           title: task ? `${course ? `${course.code}: ` : ''}${task.title}` : 'Study session',
           colorKey: task ? taskColorKey(task) : 'type-study',
+          drag: { taskId: block.taskId, originalStartIso: block.start.toISOString() },
         };
       });
 
     return [...events, ...blocks];
   });
 
+  const handleColumnClick = (day: Date) => (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return; // a block was clicked, not empty space
+    setAddTaskDate(day);
+  };
+
+  const handleDrop = (day: Date) => (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOverDay(null);
+
+    const taskId = event.dataTransfer.getData('text/x-task-id');
+    const originalStartIso = event.dataTransfer.getData('text/x-original-start');
+    const durationMinutes = Number(event.dataTransfer.getData('text/x-duration-minutes'));
+    if (!taskId || !originalStartIso || !durationMinutes) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const offsetY = event.clientY - rect.top;
+    const rawMinutes = (offsetY / HOUR_HEIGHT) * 60 + GRID_START_HOUR * 60;
+    const snappedMinutes = Math.round(rawMinutes / SNAP_MINUTES) * SNAP_MINUTES;
+    const clampedMinutes = Math.min(Math.max(snappedMinutes, GRID_START_HOUR * 60), GRID_END_HOUR * 60 - durationMinutes);
+
+    const start = new Date(day);
+    start.setUTCHours(0, clampedMinutes, 0, 0);
+    const end = new Date(start.getTime() + durationMinutes * 60_000);
+
+    moveScheduledBlock(taskId, originalStartIso, start, end);
+  };
+
   return (
     <div>
       <div className="page-header">
         <h1>Calendar</h1>
         <p>
-          Week of {formatMonthDay(WEEK_START)} – {formatMonthDay(days[6])}
+          Week of {formatMonthDay(WEEK_START)} – {formatMonthDay(days[6])}. Drag a study block to reschedule it, or
+          click an empty slot to add a task.
         </p>
       </div>
 
@@ -112,11 +146,34 @@ export default function CalendarView() {
           {days.map((day, dayIndex) => (
             <div
               key={day.toISOString()}
-              className="calendar-day-column"
+              className={`calendar-day-column${dragOverDay === dateKey(day) ? ' drag-over' : ''}`}
               style={{ height: GRID_HEIGHT, ['--hour-height' as string]: `${HOUR_HEIGHT}px` }}
+              onClick={handleColumnClick(day)}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragOverDay(dateKey(day));
+              }}
+              onDragLeave={() => setDragOverDay((current) => (current === dateKey(day) ? null : current))}
+              onDrop={handleDrop(day)}
             >
               {itemsByDay[dayIndex].map((item, index) => (
-                <div className="calendar-block" key={index} style={positionStyle(item)}>
+                <div
+                  className={`calendar-block${item.drag ? ' draggable' : ''}`}
+                  key={index}
+                  style={positionStyle(item)}
+                  draggable={Boolean(item.drag)}
+                  onClick={(event) => event.stopPropagation()}
+                  onDragStart={(event) => {
+                    if (!item.drag) return;
+                    event.dataTransfer.setData('text/x-task-id', item.drag.taskId);
+                    event.dataTransfer.setData('text/x-original-start', item.drag.originalStartIso);
+                    event.dataTransfer.setData(
+                      'text/x-duration-minutes',
+                      String((item.end.getTime() - item.start.getTime()) / 60_000),
+                    );
+                    event.dataTransfer.effectAllowed = 'move';
+                  }}
+                >
                   <strong>{item.title}</strong>
                   {formatTime(item.start)}–{formatTime(item.end)}
                 </div>
@@ -134,6 +191,13 @@ export default function CalendarView() {
           </span>
         ))}
       </div>
+
+      <TaskFormModal
+        key={addTaskDate ? addTaskDate.toISOString() : 'closed'}
+        open={addTaskDate !== null}
+        onClose={() => setAddTaskDate(null)}
+        defaultDueDate={addTaskDate ?? undefined}
+      />
     </div>
   );
 }
