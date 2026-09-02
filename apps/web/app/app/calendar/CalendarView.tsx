@@ -15,13 +15,22 @@ const HOUR_HEIGHT = 64;
 const GRID_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * HOUR_HEIGHT;
 const SNAP_MINUTES = 15;
 
+type DragPayload =
+  | { kind: 'task'; taskId: string; originalStartIso: string }
+  | { kind: 'event'; eventId: string };
+
 interface CalendarItem {
   start: Date;
   end: Date;
   title: string;
   colorKey: string;
-  /** Present only for scheduled study blocks — what makes them draggable and lets a drop target the right task/original-slot. */
-  drag?: { taskId: string; originalStartIso: string };
+  /**
+   * Present only for scheduled study blocks and personal commitments —
+   * what makes them draggable. Classes, work shifts, and exams stay fixed
+   * (no `drag`), matching real-world constraints: you can move your gym
+   * time, not your lecture.
+   */
+  drag?: DragPayload;
 }
 
 function weekDays(): Date[] {
@@ -56,7 +65,7 @@ const LEGEND: Array<{ label: string; colorKey: string }> = [
 ];
 
 export default function CalendarView() {
-  const { tasks, fixedEvents, courses, scheduleResult, now, getCourse, moveScheduledBlock } = useAppData();
+  const { tasks, fixedEvents, courses, scheduleResult, now, getCourse, moveScheduledBlock, moveFixedEvent } = useAppData();
   const days = weekDays();
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [addTaskDate, setAddTaskDate] = useState<Date | null>(null);
@@ -66,7 +75,14 @@ export default function CalendarView() {
   const itemsByDay = days.map((day) => {
     const events: CalendarItem[] = fixedEvents
       .filter((event) => isSameUtcDay(event.start, day))
-      .map((event) => ({ start: event.start, end: event.end, title: event.title, colorKey: fixedEventColorKey(event, courses) }));
+      .map((event) => ({
+        start: event.start,
+        end: event.end,
+        title: event.title,
+        colorKey: fixedEventColorKey(event, courses),
+        // Personal commitments aren't actually fixed — they're just recurring plans the student can move.
+        drag: event.type === 'appointment' ? { kind: 'event' as const, eventId: event.id } : undefined,
+      }));
 
     const blocks: CalendarItem[] = mergedBlocks
       .filter((block) => isSameUtcDay(block.start, day))
@@ -78,7 +94,7 @@ export default function CalendarView() {
           end: block.end,
           title: task ? `${course ? `${course.code}: ` : ''}${task.title}` : 'Study session',
           colorKey: task ? taskColorKey(task, courses) : 'type-study',
-          drag: { taskId: block.taskId, originalStartIso: block.start.toISOString() },
+          drag: { kind: 'task' as const, taskId: block.taskId, originalStartIso: block.start.toISOString() },
         };
       });
 
@@ -94,10 +110,9 @@ export default function CalendarView() {
     event.preventDefault();
     setDragOverDay(null);
 
-    const taskId = event.dataTransfer.getData('text/x-task-id');
-    const originalStartIso = event.dataTransfer.getData('text/x-original-start');
+    const kind = event.dataTransfer.getData('text/x-drag-kind');
     const durationMinutes = Number(event.dataTransfer.getData('text/x-duration-minutes'));
-    if (!taskId || !originalStartIso || !durationMinutes) return;
+    if (!kind || !durationMinutes) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
     const offsetY = event.clientY - rect.top;
@@ -109,7 +124,16 @@ export default function CalendarView() {
     start.setUTCHours(0, clampedMinutes, 0, 0);
     const end = new Date(start.getTime() + durationMinutes * 60_000);
 
-    moveScheduledBlock(taskId, originalStartIso, start, end);
+    if (kind === 'task') {
+      const taskId = event.dataTransfer.getData('text/x-task-id');
+      const originalStartIso = event.dataTransfer.getData('text/x-original-start');
+      if (!taskId || !originalStartIso) return;
+      moveScheduledBlock(taskId, originalStartIso, start, end);
+    } else if (kind === 'event') {
+      const eventId = event.dataTransfer.getData('text/x-event-id');
+      if (!eventId) return;
+      moveFixedEvent(eventId, start, end);
+    }
   };
 
   return (
@@ -117,13 +141,14 @@ export default function CalendarView() {
       <div className="page-header">
         <h1>Calendar</h1>
         <p>
-          Week of {formatMonthDay(WEEK_START)} – {formatMonthDay(days[6])}. Drag a study block to reschedule it, or
-          click an empty slot to add a task.
+          Week of {formatMonthDay(WEEK_START)} – {formatMonthDay(days[6])}. Drag a study block or personal
+          commitment to reschedule it, or click an empty slot to add a task.
         </p>
-        {mergedBlocks.length === 0 && (
+        {mergedBlocks.length === 0 && !fixedEvents.some((event) => event.type === 'appointment') && (
           <p className="calendar-empty-hint">
-            Only study blocks (from your tasks) are draggable — classes, work, and personal commitments are fixed.
-            There aren&rsquo;t any yet: click an empty slot above to add a task, or upload a syllabus from Courses.
+            Only study blocks and personal commitments are draggable — classes, work shifts, and exams are fixed.
+            There&rsquo;s nothing movable yet: click an empty slot above to add a task, or upload a syllabus from
+            Courses.
           </p>
         )}
       </div>
@@ -171,8 +196,13 @@ export default function CalendarView() {
                   onClick={(event) => event.stopPropagation()}
                   onDragStart={(event) => {
                     if (!item.drag) return;
-                    event.dataTransfer.setData('text/x-task-id', item.drag.taskId);
-                    event.dataTransfer.setData('text/x-original-start', item.drag.originalStartIso);
+                    event.dataTransfer.setData('text/x-drag-kind', item.drag.kind);
+                    if (item.drag.kind === 'task') {
+                      event.dataTransfer.setData('text/x-task-id', item.drag.taskId);
+                      event.dataTransfer.setData('text/x-original-start', item.drag.originalStartIso);
+                    } else {
+                      event.dataTransfer.setData('text/x-event-id', item.drag.eventId);
+                    }
                     event.dataTransfer.setData(
                       'text/x-duration-minutes',
                       String((item.end.getTime() - item.start.getTime()) / 60_000),

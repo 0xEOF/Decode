@@ -29,6 +29,7 @@ interface AppDataContextValue {
   addTasks: (newTasks: AppTask[]) => void;
   addFixedEvent: (event: FixedEvent) => void;
   moveScheduledBlock: (taskId: string, originalStartIso: string, start: Date, end: Date) => void;
+  moveFixedEvent: (eventId: string, start: Date, end: Date) => void;
   getCourse: (courseId: string | undefined) => Course | undefined;
   completeOnboarding: (data: OnboardingData) => void;
 }
@@ -88,6 +89,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setBlockOverrides((current) => ({ ...current, [`${taskId}@${originalStartIso}`]: { start, end } }));
   };
 
+  /**
+   * Unlike moveScheduledBlock, this really does update the source data —
+   * personal commitments (type 'appointment') are a real FixedEvent, not
+   * engine output, so moving one changes an actual busy slot the scheduler
+   * sees on the next recompute. Classes/work/exams/locked events stay
+   * genuinely fixed; only 'appointment' rows are ever passed a drag payload
+   * by CalendarView, so this never gets called for the others.
+   */
+  const moveFixedEvent = (eventId: string, start: Date, end: Date) => {
+    setFixedEvents((current) => current.map((event) => (event.id === eventId ? { ...event, start, end } : event)));
+  };
+
   const getCourse = (courseId: string | undefined) => courses.find((course) => course.id === courseId);
 
   const completeOnboarding = (data: OnboardingData) => {
@@ -114,6 +127,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     addTasks,
     addFixedEvent,
     moveScheduledBlock,
+    moveFixedEvent,
     getCourse,
     completeOnboarding,
   };
