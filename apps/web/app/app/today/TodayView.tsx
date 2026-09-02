@@ -16,7 +16,7 @@ interface TimelineItem {
 }
 
 export default function TodayView() {
-  const { studentName, tasks, fixedEvents, scheduleResult, workload, now, getCourse } = useAppData();
+  const { studentName, tasks, fixedEvents, courses, scheduleResult, workload, now, getCourse } = useAppData();
 
   const todaysEvents: TimelineItem[] = fixedEvents
     .filter((event) => isSameUtcDay(event.start, now))
@@ -25,7 +25,7 @@ export default function TodayView() {
       end: event.end,
       title: event.title,
       meta: event.type === 'class' ? 'Class' : event.type === 'work' ? 'Work' : 'Personal',
-      colorKey: fixedEventColorKey(event),
+      colorKey: fixedEventColorKey(event, courses),
     }));
 
   const todaysBlocks: TimelineItem[] = mergeAdjacentBlocks(scheduleResult.scheduled)
@@ -38,7 +38,7 @@ export default function TodayView() {
         end: block.end,
         title: task ? task.title : 'Study session',
         meta: course ? `${course.code} — Study` : 'Study',
-        colorKey: task ? taskColorKey(task) : 'type-study',
+        colorKey: task ? taskColorKey(task, courses) : 'type-study',
       };
     });
 

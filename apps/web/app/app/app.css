@@ -124,6 +124,16 @@ button.button-secondary:hover {
   font-size: 14px;
 }
 
+.calendar-empty-hint {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
 /* Assistant floating launcher + panel ------------------------------------ */
 
 .assistant-launcher {

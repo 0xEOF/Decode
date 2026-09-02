@@ -5,7 +5,7 @@ import { useState, type DragEvent } from 'react';
 import { useAppData } from '../../AppDataProvider';
 import { colorBgVar, colorVar, taskColorKey } from '../../../lib/colors';
 import { formatDuration, formatMonthDay } from '../../../lib/format';
-import type { AppTask } from '../../../lib/types';
+import type { AppTask, Course } from '../../../lib/types';
 import TaskFormModal from '../components/TaskFormModal';
 
 const COLUMNS: Array<{ status: TaskStatus; label: string }> = [
@@ -16,7 +16,7 @@ const COLUMNS: Array<{ status: TaskStatus; label: string }> = [
 ];
 
 export default function TasksView() {
-  const { tasks, setTaskStatus, getCourse, now } = useAppData();
+  const { tasks, courses, setTaskStatus, getCourse, now } = useAppData();
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
   const [addingToColumn, setAddingToColumn] = useState<TaskStatus | null>(null);
 
@@ -54,7 +54,7 @@ export default function TasksView() {
               </div>
 
               {columnTasks.map((task) => (
-                <TaskCard key={task.id} task={task} now={now} courseCode={getCourse(task.courseId)?.code} />
+                <TaskCard key={task.id} task={task} now={now} courses={courses} courseCode={getCourse(task.courseId)?.code} />
               ))}
 
               <button type="button" className="add-task-button" onClick={() => setAddingToColumn(column.status)}>
@@ -75,8 +75,8 @@ export default function TasksView() {
   );
 }
 
-function TaskCard({ task, now, courseCode }: { task: AppTask; now: Date; courseCode?: string }) {
-  const colorKey = taskColorKey(task);
+function TaskCard({ task, now, courses, courseCode }: { task: AppTask; now: Date; courses: Course[]; courseCode?: string }) {
+  const colorKey = taskColorKey(task, courses);
   const overdue = task.status !== 'DONE' && task.dueDate < now;
 
   return (

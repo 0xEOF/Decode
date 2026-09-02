@@ -4,8 +4,8 @@ import type { FixedEventType, SchedulingPreferences } from '@decode/scheduling-e
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAppData } from '../AppDataProvider';
-import { buildAvailableWindows, COURSES, materializeClassEvents, materializeRecurringEvents } from '../../lib/mock-data';
-import type { Course } from '../../lib/types';
+import { buildAvailableWindows, COURSES, dateAt, materializeClassEvents, materializeRecurringEvents } from '../../lib/mock-data';
+import type { AppTask, Course } from '../../lib/types';
 
 interface ClassDraft {
   id: string;
@@ -41,7 +41,7 @@ function emptyShift(): ShiftDraft {
 }
 
 const DEMO_CLASSES: ClassDraft[] = COURSES.map((c) => ({
-  id: uid('demo-class'),
+  id: c.id,
   code: c.code,
   name: c.name,
   professor: c.professor,
@@ -194,6 +194,20 @@ export default function OnboardingWizard() {
       aiPolicy: 'Not specified yet — add this once your syllabus is on file.',
     }));
 
+    // A few starter tasks so Calendar/Tasks aren't completely bare right
+    // after setup — otherwise there's nothing for the scheduling engine to
+    // place, and nothing draggable, until a syllabus gets uploaded.
+    const starterTasks: AppTask[] = courses.slice(0, 4).map((course, i) => ({
+      id: `starter-${course.id}`,
+      title: 'Get oriented',
+      type: 'reading',
+      courseId: course.id,
+      status: 'TODO',
+      dueDate: dateAt(Math.min(3 + i * 2, 13), '23:59'),
+      estimatedMinutes: 30,
+      priority: 2,
+    }));
+
     const fixedEvents = [
       ...materializeClassEvents(courses),
       ...materializeRecurringEvents(
@@ -226,7 +240,7 @@ export default function OnboardingWizard() {
       maxDailyMinutes: maxDaily,
     };
 
-    completeOnboarding({ studentName: name.trim() || 'there', courses, fixedEvents, preferences });
+    completeOnboarding({ studentName: name.trim() || 'there', courses, fixedEvents, preferences, tasks: starterTasks });
     router.push('/app/today');
   };
 
@@ -408,7 +422,10 @@ export default function OnboardingWizard() {
           {step === 5 && (
             <section>
               <h1>Review</h1>
-              <p className="onboarding-subtitle">Finishing sets up your app with this — tasks start empty; upload a syllabus from Courses to populate them.</p>
+              <p className="onboarding-subtitle">
+                Finishing sets up your app with this, plus one starter task per class so there&rsquo;s something to
+                schedule right away — upload a syllabus from Courses for the real deadlines.
+              </p>
               <div className="detail-list">
                 <div className="detail-row">
                   <span>Student</span>

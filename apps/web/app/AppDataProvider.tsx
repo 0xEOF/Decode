@@ -11,6 +11,8 @@ export interface OnboardingData {
   courses: Course[];
   fixedEvents: FixedEvent[];
   preferences: SchedulingPreferences;
+  /** Starter tasks so Calendar/Tasks have something to schedule — and drag — right away, rather than sitting empty until a syllabus is uploaded. */
+  tasks: AppTask[];
 }
 
 interface AppDataContextValue {
@@ -93,7 +95,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setCourses(data.courses);
     setFixedEvents(data.fixedEvents);
     setPreferences(data.preferences);
-    setTasks([]);
+    setTasks(data.tasks);
     setBlockOverrides({});
     setOnboarded(true);
   };

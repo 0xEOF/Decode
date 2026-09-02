@@ -56,7 +56,7 @@ const LEGEND: Array<{ label: string; colorKey: string }> = [
 ];
 
 export default function CalendarView() {
-  const { tasks, fixedEvents, scheduleResult, now, getCourse, moveScheduledBlock } = useAppData();
+  const { tasks, fixedEvents, courses, scheduleResult, now, getCourse, moveScheduledBlock } = useAppData();
   const days = weekDays();
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const [addTaskDate, setAddTaskDate] = useState<Date | null>(null);
@@ -66,7 +66,7 @@ export default function CalendarView() {
   const itemsByDay = days.map((day) => {
     const events: CalendarItem[] = fixedEvents
       .filter((event) => isSameUtcDay(event.start, day))
-      .map((event) => ({ start: event.start, end: event.end, title: event.title, colorKey: fixedEventColorKey(event) }));
+      .map((event) => ({ start: event.start, end: event.end, title: event.title, colorKey: fixedEventColorKey(event, courses) }));
 
     const blocks: CalendarItem[] = mergedBlocks
       .filter((block) => isSameUtcDay(block.start, day))
@@ -77,7 +77,7 @@ export default function CalendarView() {
           start: block.start,
           end: block.end,
           title: task ? `${course ? `${course.code}: ` : ''}${task.title}` : 'Study session',
-          colorKey: task ? taskColorKey(task) : 'type-study',
+          colorKey: task ? taskColorKey(task, courses) : 'type-study',
           drag: { taskId: block.taskId, originalStartIso: block.start.toISOString() },
         };
       });
@@ -120,6 +120,12 @@ export default function CalendarView() {
           Week of {formatMonthDay(WEEK_START)} – {formatMonthDay(days[6])}. Drag a study block to reschedule it, or
           click an empty slot to add a task.
         </p>
+        {mergedBlocks.length === 0 && (
+          <p className="calendar-empty-hint">
+            Only study blocks (from your tasks) are draggable — classes, work, and personal commitments are fixed.
+            There aren&rsquo;t any yet: click an empty slot above to add a task, or upload a syllabus from Courses.
+          </p>
+        )}
       </div>
 
       <div className="calendar-wrap">
