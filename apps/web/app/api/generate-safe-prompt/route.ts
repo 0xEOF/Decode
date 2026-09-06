@@ -1,5 +1,6 @@
 import { AnthropicProvider, createAnthropicClient, generateSafePrompt } from '@decode/ai';
 import type { AIProvider } from '@decode/ai';
+import { checkRateLimit, getClientKey } from '../../../lib/rateLimit';
 
 // Needs the Node.js runtime (not Edge) — the Anthropic SDK isn't Edge-compatible.
 export const runtime = 'nodejs';
@@ -11,6 +12,14 @@ function getProvider(): AIProvider {
 }
 
 export async function POST(request: Request) {
+  const rateLimit = checkRateLimit(getClientKey(request));
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: `Too many requests. Try again in ${rateLimit.retryAfterSeconds}s.` },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const task = body?.task;
   const requirements = body?.requirements;
