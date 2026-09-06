@@ -268,7 +268,7 @@ export default function OnboardingWizard() {
               </p>
               <label className="form-field">
                 <span>Your name</span>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="George" />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan" />
               </label>
               <div className="form-row">
                 <label className="form-field">

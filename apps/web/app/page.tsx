@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import './decode.css';
 import ScannerTool from './components/ScannerTool';
+import WaitlistForm from './components/WaitlistForm';
 
 const FAQ = [
   {
@@ -105,7 +106,7 @@ export default function HomePage() {
           </Link>
           <div className="site-nav-links">
             <Link href="/app/today">Preview the app</Link>
-            <Link href="/onboarding">Set up your semester</Link>
+            <WaitlistForm triggerClassName="waitlist-nav-trigger" />
           </div>
         </div>
       </nav>
@@ -133,7 +134,7 @@ export default function HomePage() {
             <p className="hero-subtext">
               Also the integrity check inside a bigger project we&apos;re building —{' '}
               <Link href="/app/today">preview the AI Student Success Assistant</Link> or{' '}
-              <Link href="/onboarding">set up your own semester first</Link>.
+              <WaitlistForm triggerClassName="waitlist-inline-trigger" triggerLabel="join the waitlist for early access" />.
             </p>
           </div>
         </header>
@@ -203,7 +204,7 @@ export default function HomePage() {
           <div className="footer-links">
             <Link href="/">Decode</Link>
             <Link href="/app/today">Preview the app</Link>
-            <Link href="/onboarding">Set up your semester</Link>
+            <WaitlistForm triggerClassName="waitlist-nav-trigger" />
           </div>
           <p>
             Hidden/invisible-content detection runs entirely in your browser. Visible text is also sent to our

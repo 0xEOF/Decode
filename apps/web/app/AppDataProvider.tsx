@@ -4,6 +4,7 @@ import type { FixedEvent, ScheduleResult, SchedulingPreferences, TaskStatus } fr
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { computeSchedule } from '../lib/schedule';
 import { COURSES, FIXED_EVENTS, MOCK_NOW, PREFERENCES, TASKS } from '../lib/mock-data';
+import { randomPreviewName } from '../lib/names';
 import type { AppTask, Course } from '../lib/types';
 
 export interface OnboardingData {
@@ -40,7 +41,7 @@ const AppDataContext = createContext<AppDataContextValue | null>(null);
 type BlockOverrides = Record<string, { start: Date; end: Date }>;
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [studentName, setStudentName] = useState('George');
+  const [studentName, setStudentName] = useState(randomPreviewName);
   const [courses, setCourses] = useState<Course[]>(COURSES);
   const [fixedEvents, setFixedEvents] = useState<FixedEvent[]>(FIXED_EVENTS);
   const [preferences, setPreferences] = useState<SchedulingPreferences>(PREFERENCES);
@@ -104,7 +105,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const getCourse = (courseId: string | undefined) => courses.find((course) => course.id === courseId);
 
   const completeOnboarding = (data: OnboardingData) => {
-    setStudentName(data.studentName || 'George');
+    setStudentName(data.studentName || randomPreviewName());
     setCourses(data.courses);
     setFixedEvents(data.fixedEvents);
     setPreferences(data.preferences);
