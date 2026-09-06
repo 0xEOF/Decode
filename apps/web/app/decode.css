@@ -10,32 +10,117 @@
   border: 0;
 }
 
-.app-header {
-  margin-bottom: 28px;
+.site-nav {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
 }
 
-.app-header .eyebrow {
-  margin: 0 0 8px;
-  font-size: 12px;
+.site-nav-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.site-logo {
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 16px;
+  color: var(--text-h);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.site-nav-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.site-nav-links a {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav-links a:hover {
   color: var(--accent);
 }
 
+.app-header {
+  margin-bottom: 28px;
+  padding-top: 8px;
+}
+
+.trust-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
 .app-header h1 {
-  font-size: 34px;
-  margin: 0 0 8px;
+  font-size: 40px;
+  margin: 0 0 10px;
   color: var(--text-h);
-  letter-spacing: -0.6px;
+  letter-spacing: -0.8px;
 }
 
 .app-header .tagline {
   margin: 0;
   color: var(--text-dim);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.6;
   max-width: 640px;
+}
+
+.hero-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.btn-hero {
+  display: inline-block;
+  text-decoration: none;
+  padding: 12px 22px;
+  font-size: 15px;
+  box-shadow: var(--shadow);
+}
+
+.hero-subtext {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 560px;
+}
+
+.hero-subtext a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero-subtext a:hover {
+  text-decoration: underline;
 }
 
 .panel {
@@ -385,9 +470,30 @@ mark {
 
 .footnote {
   margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
   text-align: center;
   font-size: 12px;
   color: var(--text-dim);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.footer-links a {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
 }
 
 .content-section {
@@ -405,13 +511,17 @@ mark {
 
 .steps {
   margin: 0;
-  padding-left: 22px;
+  padding-left: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
   color: var(--text);
   font-size: 14px;
   line-height: 1.6;
@@ -419,6 +529,46 @@ mark {
 
 .steps strong {
   color: var(--text-h);
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.audience-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.audience-card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.audience-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
 }
 
 .faq-list {
