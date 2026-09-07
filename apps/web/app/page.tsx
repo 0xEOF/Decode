@@ -218,6 +218,8 @@ export default function HomePage() {
             <Link href="/">Decode</Link>
             <Link href="/app/today">Preview the scheduler</Link>
             <WaitlistForm triggerClassName="waitlist-nav-trigger" />
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
           </div>
           <p>
             Hidden/invisible-content detection runs entirely in your browser. Visible text is sent to our server

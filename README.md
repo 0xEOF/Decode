@@ -44,14 +44,16 @@ Or run a single package directly, e.g. `pnpm --filter @decode/content-scanner te
 
 ## SEO
 
-`apps/web/app/layout.tsx` and `app/robots.ts`/`app/sitemap.ts` currently use
-a placeholder domain (`REPLACE-WITH-YOUR-DOMAIN.com`) for the absolute URLs
-canonical/OG/sitemap require. **Before going live**, replace every
-occurrence with the real production domain:
+`apps/web/app/layout.tsx`, `app/robots.ts`/`app/sitemap.ts`, and
+`apps/web/lib/site.ts` (the Terms/Privacy contact email) currently use a
+placeholder domain (`REPLACE-WITH-YOUR-DOMAIN.com`) for the absolute URLs
+canonical/OG/sitemap require, and for the legal pages' contact address.
+**Before going live**, replace every occurrence with the real production
+domain:
 
 ```sh
-grep -rl 'REPLACE-WITH-YOUR-DOMAIN' apps/web/app \
-  | xargs sed -i 's#https://REPLACE-WITH-YOUR-DOMAIN.com#https://your-real-domain.com#g'
+grep -rl 'REPLACE-WITH-YOUR-DOMAIN' apps/web/app apps/web/lib \
+  | xargs sed -i 's/REPLACE-WITH-YOUR-DOMAIN\.com/your-real-domain.com/g'
 ```
 
 Favicons, the Open Graph image, and the web manifest use Next's built-in file

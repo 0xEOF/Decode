@@ -1,0 +1,76 @@
+.legal-nav {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.legal-nav-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 20px;
+}
+
+.legal-nav-inner a {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.legal-nav-inner a:hover {
+  color: var(--accent);
+}
+
+.legal-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.legal-draft-notice {
+  margin-bottom: 28px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--keyword-bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.legal-shell h1 {
+  font-size: 28px;
+  margin: 0 0 6px;
+  color: var(--text-h);
+  letter-spacing: -0.5px;
+}
+
+.legal-effective-date {
+  margin: 0 0 28px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.legal-shell h2 {
+  font-size: 17px;
+  margin: 32px 0 10px;
+  color: var(--text-h);
+}
+
+.legal-shell p {
+  margin: 0 0 14px;
+}
+
+.legal-shell ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+
+.legal-shell li {
+  margin-bottom: 6px;
+}
+
+.legal-shell a {
+  color: var(--accent);
+}
