@@ -3,11 +3,9 @@ import './globals.css';
 import { AppDataProvider } from './AppDataProvider';
 import { SITE_NAME } from '../lib/site';
 
-// TODO: replace with the real production domain before/at launch — canonical,
-// Open Graph, and the sitemap all need an absolute URL to be valid. See
-// README.md "SEO" section for the one-line command that updates every
-// occurrence at once.
-const SITE_URL = 'https://REPLACE-WITH-YOUR-DOMAIN.com';
+// Canonical/OG/sitemap absolute-URL base. See README.md "SEO" if this ever
+// needs to change again — one command updates every occurrence at once.
+const SITE_URL = 'https://reveala.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
