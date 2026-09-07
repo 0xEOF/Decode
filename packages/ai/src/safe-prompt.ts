@@ -1,5 +1,5 @@
 /**
- * Decode's "Safe Prompt" output — instead of (or alongside) the clean text
+ * Reveala's "Safe Prompt" output — instead of (or alongside) the clean text
  * itself, produces a ready-to-paste prompt the user can hand to any AI
  * assistant (ChatGPT, Claude, Gemini, ...) to actually do something with the
  * scanned document, framed defensively so a residual or missed covert
@@ -19,7 +19,7 @@ const MAX_TASK_CHARS = 2000;
 const MAX_REQUIREMENTS_CHARS = 4000;
 const PREVIEW_CHARS = 800;
 
-const SYSTEM_PROMPT = `You are a prompt-engineering assistant inside Decode, a hidden-text/prompt-injection scanner. A user has already scanned a document and wants an effective, ready-to-paste prompt to hand to a general-purpose AI assistant (ChatGPT, Claude, Gemini, or similar) to accomplish a task on that document.
+const SYSTEM_PROMPT = `You are a prompt-engineering assistant inside Reveala, a hidden-text/prompt-injection scanner. A user has already scanned a document and wants an effective, ready-to-paste prompt to hand to a general-purpose AI assistant (ChatGPT, Claude, Gemini, or similar) to accomplish a task on that document.
 
 Write ONLY the framing/instructions portion of that prompt — NOT the document content itself, which the user's own tool appends after your output inside its own delimiters. Your output should:
 
@@ -36,7 +36,7 @@ export interface SafePromptInput {
   task: string;
   /** Grading criteria / rubric / requirements, in the user's own words. Optional. */
   requirements?: string;
-  /** Short human-readable descriptions of what Decode's scan found, e.g. `Hidden content (display:none): "..."`. Empty array if the document was clean. */
+  /** Short human-readable descriptions of what Reveala's scan found, e.g. `Hidden content (display:none): "..."`. Empty array if the document was clean. */
   findingsSummary: string[];
   /** The full clean text — only a short excerpt is sent to the model (for genre inference); the rest never leaves this function. */
   cleanText: string;

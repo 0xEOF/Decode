@@ -2,7 +2,7 @@
 
 Monorepo for the full product (see [ROADMAP.md](./ROADMAP.md) for the product
 vision, architecture decisions, and development plan). Right now this repo
-contains **Decode** — the hidden text / prompt-injection / covert-AI-instruction
+contains **Reveala** — the hidden text / prompt-injection / covert-AI-instruction
 scanner — both as a free, public, SEO-optimized tool and as the shared
 detection engine the rest of the product will use to protect its own document
 pipelines. Everything else in the roadmap (auth, scheduling engine, syllabus
@@ -13,15 +13,15 @@ upload, AI assistant) is not built yet.
 ```
 apps/
   web/                  Next.js 16 (App Router) — the public site, including
-                         Decode's scanner UI at "/" and its API route
+                         Reveala's scanner UI at "/" and its API route
 
 packages/
-  content-scanner/      Decode's detection engine — pure TypeScript, no
+  content-scanner/      Reveala's detection engine — pure TypeScript, no
                          framework dependency (unicode/keyword/hidden-content
                          detection, the clean-version generator)
   ai/                   AIProvider abstraction (generate/extract/
                          extractFromImage/classify/toolCall) wrapping the
-                         Anthropic SDK — Decode's AI deep scan is built on
+                         Anthropic SDK — Reveala's AI deep scan is built on
                          top of this, not a one-off API call
 ```
 

@@ -1,5 +1,5 @@
 /**
- * Decode's "deep scan" — catches covert AI-directed instructions that a
+ * Reveala's "deep scan" — catches covert AI-directed instructions that a
  * fixed keyword list can't, because the phrasing can always be paraphrased
  * around a regex. Built on AIProvider.extract() rather than calling the SDK
  * directly, so it works with whatever provider the caller configures.

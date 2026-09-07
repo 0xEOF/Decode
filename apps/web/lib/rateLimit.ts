@@ -1,7 +1,7 @@
 /**
  * Best-effort, in-memory per-IP rate limiter shared by the two AI-calling
  * routes (deep scan + safe prompt generation). This exists purely to bound
- * worst-case cost from a single client looping requests — Decode stays
+ * worst-case cost from a single client looping requests — Reveala stays
  * free and ungated, this is abuse mitigation, not a paywall.
  *
  * State lives in module scope, so it's shared across requests served by

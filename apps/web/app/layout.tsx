@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AppDataProvider } from './AppDataProvider';
+import { SITE_NAME } from '../lib/site';
 
 // TODO: replace with the real production domain before/at launch — canonical,
 // Open Graph, and the sitemap all need an absolute URL to be valid. See
@@ -11,8 +12,8 @@ const SITE_URL = 'https://REPLACE-WITH-YOUR-DOMAIN.com';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Decode — Hidden Text & Prompt Injection Scanner',
-    template: '%s · Decode',
+    default: `${SITE_NAME} — Hidden Text & Prompt Injection Scanner`,
+    template: `%s · ${SITE_NAME}`,
   },
   description:
     'Paste any text, essay prompt, or document and instantly reveal hidden content, invisible Unicode characters, and covert AI-directed instructions — the kind of prompt injection tricks that slip past students, teachers, and AI grading tools. Free, runs in your browser.',
@@ -36,21 +37,21 @@ export const metadata: Metadata = {
     'white text hidden instructions',
     'AI hiring screener manipulation',
   ],
-  authors: [{ name: 'Decode' }],
+  authors: [{ name: SITE_NAME }],
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
     url: '/',
-    siteName: 'Decode',
-    title: 'Decode — Hidden Text & Prompt Injection Scanner',
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Hidden Text & Prompt Injection Scanner`,
     description:
       'Reveal hidden content, invisible Unicode characters, and covert AI-directed instructions in any pasted text. Free, runs entirely in your browser.',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Decode — Hidden Text & Prompt Injection Scanner',
+    title: `${SITE_NAME} — Hidden Text & Prompt Injection Scanner`,
     description:
       'Reveal hidden content, invisible Unicode characters, and covert AI-directed instructions in any pasted text. Free, runs entirely in your browser.',
   },

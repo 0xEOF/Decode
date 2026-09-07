@@ -4,7 +4,7 @@ import './onboarding.css';
 import OnboardingWizard from './OnboardingWizard';
 
 export const metadata: Metadata = {
-  title: 'Set Up Your Semester · Decode',
+  title: 'Set Up Your Semester',
   robots: { index: false, follow: false },
 };
 

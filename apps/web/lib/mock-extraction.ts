@@ -23,7 +23,7 @@ export interface SyllabusExtraction {
 /**
  * Stands in for the real pipeline — Upload -> Extract text -> LLM structured
  * extraction (ROADMAP.md §3) — which needs the backend/LLM wiring this pass
- * is deliberately deferring. The Decode integrity scan step that follows
+ * is deliberately deferring. The Reveala integrity scan step that follows
  * extraction is NOT mocked: UploadSyllabusFlow runs the real
  * `@decode/content-scanner` `analyze()` against `rawHtml` below.
  */

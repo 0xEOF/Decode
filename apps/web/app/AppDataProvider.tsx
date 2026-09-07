@@ -1,7 +1,7 @@
 'use client';
 
 import type { FixedEvent, ScheduleResult, SchedulingPreferences, TaskStatus } from '@decode/scheduling-engine';
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { computeSchedule } from '../lib/schedule';
 import { COURSES, FIXED_EVENTS, MOCK_NOW, PREFERENCES, TASKS } from '../lib/mock-data';
 import { randomPreviewName } from '../lib/names';
@@ -41,13 +41,27 @@ const AppDataContext = createContext<AppDataContextValue | null>(null);
 type BlockOverrides = Record<string, { start: Date; end: Date }>;
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [studentName, setStudentName] = useState(randomPreviewName);
+  // Starts as a stable, non-random placeholder so server and client render
+  // the same markup on first paint — Math.random() would otherwise pick
+  // different names during SSR vs. hydration and trigger a mismatch error.
+  // The real random pick happens client-side only, right after mount.
+  const [studentName, setStudentName] = useState('there');
   const [courses, setCourses] = useState<Course[]>(COURSES);
   const [fixedEvents, setFixedEvents] = useState<FixedEvent[]>(FIXED_EVENTS);
   const [preferences, setPreferences] = useState<SchedulingPreferences>(PREFERENCES);
   const [tasks, setTasks] = useState<AppTask[]>(TASKS);
   const [onboarded, setOnboarded] = useState(false);
   const [blockOverrides, setBlockOverrides] = useState<BlockOverrides>({});
+
+  useEffect(() => {
+    // This is the one legitimate exception to "don't setState in an effect":
+    // a value that must differ between the server-rendered HTML and the
+    // client (here, a random pick) can only be assigned after hydration —
+    // computing it during render would make server and client output
+    // mismatch and React would throw a hydration error.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStudentName(randomPreviewName());
+  }, []);
 
   const { scheduleResult: computedResult, workload } = useMemo(
     () => computeSchedule(tasks, fixedEvents, preferences),

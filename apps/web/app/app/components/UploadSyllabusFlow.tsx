@@ -6,6 +6,7 @@ import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { useAppData } from '../../AppDataProvider';
 import { formatDuration, formatMonthDay } from '../../../lib/format';
 import { mockExtractSyllabus, type SyllabusExtraction } from '../../../lib/mock-extraction';
+import { SITE_NAME } from '../../../lib/site';
 import type { AppTask } from '../../../lib/types';
 
 type Status = 'idle' | 'extracting' | 'review';
@@ -17,10 +18,10 @@ interface UploadSyllabusFlowProps {
 
 /**
  * Stands in for ROADMAP.md §3's pipeline:
- *   Upload -> Extract text -> [LLM extraction] -> [Decode scan] -> Import Review
+ *   Upload -> Extract text -> [LLM extraction] -> [Reveala scan] -> Import Review
  * The LLM-extraction step is mocked (see lib/mock-extraction.ts) — that's
  * real backend/LLM work this UI-finesse pass is deliberately deferring. The
- * Decode integrity scan is NOT mocked: it runs the actual
+ * Reveala integrity scan is NOT mocked: it runs the actual
  * `@decode/content-scanner` analyze() against the (fake) extracted document,
  * which does contain one deliberately hidden sentence to demonstrate the
  * scan catching something real.
@@ -119,7 +120,7 @@ export default function UploadSyllabusFlow({ courseId, courseCode }: UploadSylla
             </div>
           </div>
         ) : (
-          <div className="decode-banner decode-banner--clean">✓ Decode scan found nothing hidden or suspicious.</div>
+          <div className="decode-banner decode-banner--clean">✓ {SITE_NAME} scan found nothing hidden or suspicious.</div>
         )}
 
         <p className="import-review-heading">
@@ -168,7 +169,7 @@ export default function UploadSyllabusFlow({ courseId, courseCode }: UploadSylla
       >
         <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" hidden onChange={handleInputChange} />
         {status === 'extracting' ? (
-          <p>Extracting deadlines and running the Decode integrity scan…</p>
+          <p>Extracting deadlines and running the {SITE_NAME} integrity scan…</p>
         ) : (
           <>
             <p>

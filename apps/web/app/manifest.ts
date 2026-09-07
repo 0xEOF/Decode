@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
+import { SITE_NAME } from '../lib/site';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Decode — Hidden Text & Prompt Injection Scanner',
-    short_name: 'Decode',
+    name: `${SITE_NAME} — Hidden Text & Prompt Injection Scanner`,
+    short_name: SITE_NAME,
     description:
       'Reveal hidden content, invisible Unicode characters, and covert AI-directed instructions in any pasted text.',
     start_url: '/',

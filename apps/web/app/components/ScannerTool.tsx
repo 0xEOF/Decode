@@ -6,6 +6,7 @@ import { analyze, createCleanVersion, flattenVisibleText, mergeAIFindings } from
 import type { AnalysisResult, Finding } from '@decode/content-scanner';
 import { scanWithAI } from '../../lib/aiScan';
 import { generateSafePromptRequest, SafePromptError } from '../../lib/safePrompt';
+import { SITE_NAME } from '../../lib/site';
 import AnalyzedOutput from './AnalyzedOutput';
 import FindingsList from './FindingsList';
 import CopyButton from './CopyButton';
@@ -193,7 +194,7 @@ export default function ScannerTool() {
       </div>
 
       <details className="scan-disclosure">
-        <summary>What does Decode check?</summary>
+        <summary>What does {SITE_NAME} check?</summary>
         <ul>
           <li>Hidden content in rich-text/HTML: display:none, visibility:hidden, opacity:0</li>
           <li>Invisible Unicode: zero-width spaces, bidirectional overrides, Unicode tag characters</li>
