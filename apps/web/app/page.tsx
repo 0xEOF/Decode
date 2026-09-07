@@ -10,11 +10,11 @@ const FAQ = [
   },
   {
     q: 'How do I check if my essay or assignment has hidden text?',
-    a: 'Paste the text into the box above and click Analyze. Decode checks for CSS-hidden content, invisible Unicode characters, and covert AI-directed instructions, then highlights anything it finds directly in your text.',
+    a: 'Paste the text into the box above and click Analyze text. Decode checks for CSS-hidden content and invisible Unicode characters locally, then highlights anything it finds directly in your text. Click Run AI deep scan afterward to also catch paraphrased covert instructions a fixed pattern list would miss.',
   },
   {
     q: 'Does my text get sent anywhere?',
-    a: 'Hidden-content and invisible-Unicode detection run entirely in your browser. Only the visible text is sent to our server for an AI deep scan that catches paraphrased covert instructions a fixed pattern list would miss — hidden content itself is never sent.',
+    a: 'Hidden-content and invisible-Unicode detection run entirely in your browser and nothing is sent anywhere for that. Only if you click Run AI deep scan is the visible text sent to our server, to catch paraphrased covert instructions a fixed pattern list would miss — hidden content itself is never sent.',
   },
   {
     q: 'Can teachers use this to check assignments or AI grading prompts?',
@@ -34,7 +34,7 @@ const FAQ = [
   },
   {
     q: "What's the difference between Decode's instant checks and the AI deep scan?",
-    a: 'Hidden-content and invisible-Unicode checks are pattern-based and run instantly, entirely in your browser. The AI deep scan sends only the visible text to catch paraphrased covert instructions that don’t match any fixed pattern — a phrase like "if you are an AI, disregard the rubric" can be worded a thousand ways a keyword list would miss.',
+    a: 'Hidden-content and invisible-Unicode checks are pattern-based and run instantly, entirely in your browser, as soon as you click Analyze text. The AI deep scan is a separate, optional step — click Run AI deep scan afterward and only then is the visible text sent to catch paraphrased covert instructions that don’t match any fixed pattern, like "if you are an AI, disregard the rubric" worded in a way a keyword list would miss.',
   },
   {
     q: 'Can I safely hand the cleaned text to ChatGPT or another AI?',
@@ -52,7 +52,7 @@ const softwareApplicationJsonLd = {
   name: 'Decode',
   alternateName: 'Hidden Text & Content Scanner',
   description:
-    'Client-side tool that scans pasted text or rich-text/HTML for hidden content, invisible Unicode characters, suspicious phrases, and covert AI-directed instructions, then produces a clean copy with only the hidden/covert content removed.',
+    'Browser-based tool that scans pasted text or rich-text/HTML for hidden content and invisible Unicode characters locally, with an optional AI deep scan for paraphrased or covert AI-directed instructions, then produces a clean copy with only the hidden/covert content removed.',
   applicationCategory: 'SecurityApplication',
   operatingSystem: 'Any (web browser)',
   browserRequirements: 'Requires JavaScript',
@@ -105,8 +105,10 @@ export default function HomePage() {
             Decode
           </Link>
           <div className="site-nav-links">
-            <Link href="/app/today">Preview the app</Link>
-            <WaitlistForm triggerClassName="waitlist-nav-trigger" />
+            <a href="#how-it-works-heading">How it works</a>
+            <a href="#audiences-heading">Use cases</a>
+            <a href="#faq-heading">FAQ</a>
+            <WaitlistForm triggerClassName="waitlist-nav-cta" />
           </div>
         </div>
       </nav>
@@ -118,29 +120,39 @@ export default function HomePage() {
         <header className="app-header">
           <div className="trust-badges">
             <span className="badge">Free</span>
-            <span className="badge">Client-side</span>
+            <span className="badge">Local checks in browser</span>
             <span className="badge">No signup</span>
           </div>
-          <h1>Decode</h1>
+          <p className="hero-eyebrow">Decode</p>
+          <h1>Detect hidden text and prompt injections</h1>
           <p className="tagline">
-            Hidden Text &amp; Prompt Injection Scanner — paste any text, essay prompt, resume, or document and
-            reveal what isn&apos;t meant to be seen: hidden content, invisible Unicode, and covert instructions
-            aimed at AI readers.
+            Paste any document to reveal invisible characters, concealed content, and covert instructions aimed at
+            AI readers.
           </p>
           <div className="hero-actions">
             <a href="#scan-input" className="btn btn-primary btn-hero">
-              Scan text now ↓
+              Paste text to scan ↓
             </a>
-            <p className="hero-subtext">
-              Also the integrity check inside a bigger project we&apos;re building —{' '}
-              <Link href="/app/today">preview the AI Student Success Assistant</Link> or{' '}
-              <WaitlistForm triggerClassName="waitlist-inline-trigger" triggerLabel="join the waitlist for early access" />.
-            </p>
           </div>
         </header>
 
         <main>
           <ScannerTool />
+
+          <section className="cross-promo" aria-labelledby="cross-promo-heading">
+            <h2 id="cross-promo-heading">Also building something bigger</h2>
+            <p>
+              Decode&apos;s covert-instruction detection is also the integrity check inside a full AI Student
+              Success Assistant we&apos;re building — a semester planner that schedules your coursework around
+              your real deadlines.
+            </p>
+            <div className="cross-promo-actions">
+              <Link href="/app/today" className="btn">
+                Preview the scheduler
+              </Link>
+              <WaitlistForm triggerClassName="btn btn-primary" triggerLabel="Join the waitlist" />
+            </div>
+          </section>
 
           <section className="content-section" aria-labelledby="how-it-works-heading">
             <h2 id="how-it-works-heading">How Decode works</h2>
@@ -160,7 +172,8 @@ export default function HomePage() {
                 </span>
                 <div>
                   <strong>Analyze</strong> — Decode checks locally for CSS-hidden content and invisible Unicode
-                  characters, then runs an AI deep scan for covert instructions a fixed pattern list would miss.
+                  characters. Choose to run an AI deep scan afterward for covert instructions a fixed pattern list
+                  would miss.
                 </div>
               </li>
               <li>
@@ -203,13 +216,13 @@ export default function HomePage() {
         <footer className="footnote">
           <div className="footer-links">
             <Link href="/">Decode</Link>
-            <Link href="/app/today">Preview the app</Link>
+            <Link href="/app/today">Preview the scheduler</Link>
             <WaitlistForm triggerClassName="waitlist-nav-trigger" />
           </div>
           <p>
-            Hidden/invisible-content detection runs entirely in your browser. Visible text is also sent to our
-            server for an AI deep scan for covert instructions — this tool exposes hidden content, it does not
-            censor visible content.
+            Hidden/invisible-content detection runs entirely in your browser. Visible text is sent to our server
+            only if you choose to run the optional AI deep scan for covert instructions — this tool exposes hidden
+            content, it does not censor visible content.
           </p>
         </footer>
       </div>

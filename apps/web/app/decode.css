@@ -64,6 +64,20 @@
   color: var(--accent);
 }
 
+.waitlist-nav-cta {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.waitlist-nav-cta:hover {
+  filter: brightness(1.08);
+}
+
 .waitlist-inline-trigger {
   background: none;
   border: none;
@@ -185,8 +199,17 @@
   padding: 4px 10px;
 }
 
+.hero-eyebrow {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
 .app-header h1 {
-  font-size: 40px;
+  font-size: 36px;
   margin: 0 0 10px;
   color: var(--text-h);
   letter-spacing: -0.8px;
@@ -216,21 +239,33 @@
   box-shadow: var(--shadow);
 }
 
-.hero-subtext {
+.cross-promo {
+  margin-top: 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.cross-promo h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--text-h);
+}
+
+.cross-promo p {
   margin: 0;
   font-size: 13px;
+  line-height: 1.6;
   color: var(--text-dim);
-  max-width: 560px;
+  max-width: 640px;
 }
 
-.hero-subtext a {
-  color: var(--accent);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.hero-subtext a:hover {
-  text-decoration: underline;
+.cross-promo-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .panel {
@@ -430,6 +465,42 @@ mark {
 .stat-chip--scanning {
   background: var(--accent-bg);
   color: var(--accent);
+}
+
+.scan-disclosure {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.scan-disclosure summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.scan-disclosure ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.deep-scan-prompt {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-bg);
+}
+
+.deep-scan-prompt p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.deep-scan-prompt .deep-scan-hint {
+  color: var(--text-dim);
+  margin-bottom: 12px;
 }
 
 .ai-error-banner {
