@@ -52,6 +52,48 @@
   background: var(--accent-bg);
 }
 
+.app-auth-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-auth-email {
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-auth-signout {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.app-auth-signout:hover {
+  color: var(--text-h);
+  border-color: var(--accent-border);
+}
+
+.app-auth-signin {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-auth-signin:hover {
+  text-decoration: underline;
+}
+
 .app-main {
   max-width: 1080px;
   margin: 0 auto;

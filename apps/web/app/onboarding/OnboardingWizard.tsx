@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAppData } from '../AppDataProvider';
 import { buildAvailableWindows, COURSES, dateAt, materializeClassEvents, materializeRecurringEvents } from '../../lib/mock-data';
+import { AppDataError, submitOnboarding, type OnboardingSubmission } from '../../lib/app-data';
 import type { AppTask, Course } from '../../lib/types';
 
 interface ClassDraft {
@@ -135,8 +136,10 @@ function ShiftList({ items, onRemove }: { items: ShiftDraft[]; onRemove: (id: st
 
 export default function OnboardingWizard() {
   const router = useRouter();
-  const { completeOnboarding } = useAppData();
+  const { completeOnboarding, refreshFromServer, isAuthed } = useAppData();
   const [step, setStep] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
   const [school, setSchool] = useState('');
@@ -180,7 +183,7 @@ export default function OnboardingWizard() {
     setPersonalDraft(emptyShift());
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const courses: Course[] = classes.map((c, i) => ({
       id: c.id,
       code: c.code || `Course ${i + 1}`,
@@ -240,8 +243,66 @@ export default function OnboardingWizard() {
       maxDailyMinutes: maxDaily,
     };
 
+    // Applied immediately regardless of auth state so the app feels done
+    // right away — for a signed-in user this is an optimistic preview using
+    // locally-materialized ids; refreshFromServer() below replaces it with
+    // the server's authoritative version (real ids) once the save lands.
     completeOnboarding({ studentName: name.trim() || 'there', courses, fixedEvents, preferences, tasks: starterTasks });
-    router.push('/app/today');
+
+    if (!isAuthed) {
+      router.push('/app/today');
+      return;
+    }
+
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      const submission: OnboardingSubmission = {
+        studentName: name.trim() || 'there',
+        school: school.trim() || undefined,
+        semesterLabel: semester.trim() || undefined,
+        courses: courses.map((c) => ({
+          code: c.code,
+          name: c.name,
+          professor: c.professor,
+          color: c.color,
+          location: c.location,
+          meetingDays: c.meetingDays,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          aiPolicy: c.aiPolicy,
+        })),
+        recurringCommitments: [
+          ...work.map((w) => ({ title: w.title, type: 'work' as const, days: w.days, startTime: w.startTime, endTime: w.endTime })),
+          ...personal.map((p) => ({ title: p.title, type: 'appointment' as const, days: p.days, startTime: p.startTime, endTime: p.endTime })),
+        ],
+        preferences: {
+          earliestTime: earliest,
+          latestTime: latest,
+          minSessionMinutes: minSession,
+          preferredSessionMinutes: preferredSession,
+          breakMinutes,
+          maxDailyMinutes: maxDaily,
+        },
+        tasks: courses.slice(0, 4).map((course, i) => ({
+          title: 'Get oriented',
+          type: 'reading',
+          courseCode: course.code,
+          dueInDays: Math.min(3 + i * 2, 13),
+          dueTime: '23:59',
+          estimatedMinutes: 30,
+          priority: 2,
+        })),
+      };
+
+      await submitOnboarding(submission);
+      await refreshFromServer();
+      router.push('/app/today');
+    } catch (err) {
+      setSaveError(err instanceof AppDataError ? err.message : 'Saving your semester failed. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const isLastStep = step === STEP_LABELS.length - 1;
@@ -454,13 +515,20 @@ export default function OnboardingWizard() {
           )}
         </div>
 
+        {saveError && <p className="onboarding-save-error">{saveError}</p>}
+
         <div className="onboarding-nav">
-          <button type="button" className="button-secondary" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            disabled={step === 0 || isSaving}
+          >
             Back
           </button>
           {isLastStep ? (
-            <button type="button" className="button-primary" onClick={handleFinish}>
-              Finish Setup
+            <button type="button" className="button-primary" onClick={handleFinish} disabled={isSaving}>
+              {isSaving ? 'Saving…' : 'Finish Setup'}
             </button>
           ) : (
             <button type="button" className="button-primary" onClick={() => setStep((s) => Math.min(STEP_LABELS.length - 1, s + 1))}>

@@ -5,6 +5,9 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { computeSchedule } from '../lib/schedule';
 import { COURSES, FIXED_EVENTS, MOCK_NOW, PREFERENCES, TASKS } from '../lib/mock-data';
 import { randomPreviewName } from '../lib/names';
+import { createClient } from '../lib/supabase/client';
+import { isSupabaseConfigured } from '../lib/supabase/is-configured';
+import { fetchAppData } from '../lib/app-data';
 import type { AppTask, Course } from '../lib/types';
 
 export interface OnboardingData {
@@ -26,6 +29,10 @@ interface AppDataContextValue {
   workload: ReturnType<typeof computeSchedule>['workload'];
   now: Date;
   onboarded: boolean;
+  /** Whether there's a real Supabase session — see proxy.ts for why anonymous /app/* browsing stays fully supported regardless. */
+  isAuthed: boolean;
+  /** True while fetching real data for a signed-in user on first load — distinguishes "no data yet" from "still loading" so pages don't flash an empty state. */
+  isLoadingRealData: boolean;
   setTaskStatus: (taskId: string, status: TaskStatus) => void;
   addTasks: (newTasks: AppTask[]) => void;
   addFixedEvent: (event: FixedEvent) => void;
@@ -33,6 +40,8 @@ interface AppDataContextValue {
   moveFixedEvent: (eventId: string, start: Date, end: Date) => void;
   getCourse: (courseId: string | undefined) => Course | undefined;
   completeOnboarding: (data: OnboardingData) => void;
+  /** Re-fetches real data from the server and replaces local state with it — call after a successful submitOnboarding() so subsequent mutations (setTaskStatus, moveFixedEvent) act on real, server-assigned ids rather than the locally-materialized preview ids completeOnboarding used for the immediate optimistic update. */
+  refreshFromServer: () => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
@@ -44,7 +53,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   // Starts as a stable, non-random placeholder so server and client render
   // the same markup on first paint — Math.random() would otherwise pick
   // different names during SSR vs. hydration and trigger a mismatch error.
-  // The real random pick happens client-side only, right after mount.
+  // The real random pick (anonymous) or real profile name (signed in)
+  // happens client-side only, right after mount — see the effect below.
   const [studentName, setStudentName] = useState('there');
   const [courses, setCourses] = useState<Course[]>(COURSES);
   const [fixedEvents, setFixedEvents] = useState<FixedEvent[]>(FIXED_EVENTS);
@@ -52,16 +62,91 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<AppTask[]>(TASKS);
   const [onboarded, setOnboarded] = useState(false);
   const [blockOverrides, setBlockOverrides] = useState<BlockOverrides>({});
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
+  const [now, setNow] = useState(MOCK_NOW);
 
   useEffect(() => {
     // This is the one legitimate exception to "don't setState in an effect":
-    // a value that must differ between the server-rendered HTML and the
-    // client (here, a random pick) can only be assigned after hydration —
-    // computing it during render would make server and client output
-    // mismatch and React would throw a hydration error.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStudentName(randomPreviewName());
+    // values that must differ between the server-rendered HTML and the
+    // client (a random name pick, or real per-user data) can only be
+    // assigned after hydration — computing them during render would make
+    // server and client output mismatch and React would throw a hydration
+    // error. All the setState calls below (inside the nested async
+    // function) are that same exception.
+    let cancelled = false;
+
+    async function loadRealDataOrPreview() {
+      // No Supabase project configured (e.g. local dev before setup) —
+      // everyone is anonymous, exactly like before this feature existed.
+      if (!isSupabaseConfigured()) {
+        setStudentName(randomPreviewName());
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (cancelled) return;
+
+        if (!user) {
+          setStudentName(randomPreviewName());
+          return;
+        }
+
+        setIsAuthed(true);
+        setIsLoadingRealData(true);
+        try {
+          const data = await fetchAppData();
+          if (cancelled) return;
+          if (data.onboarded) {
+            setStudentName(data.studentName ?? 'there');
+            setCourses(data.courses ?? []);
+            setFixedEvents(data.fixedEvents ?? []);
+            setTasks(data.tasks ?? []);
+            setPreferences(data.preferences ?? PREFERENCES);
+            setOnboarded(true);
+            setNow(new Date());
+          } else {
+            const metaName = user.user_metadata?.student_name;
+            setStudentName(typeof metaName === 'string' && metaName ? metaName : 'there');
+          }
+        } finally {
+          if (!cancelled) setIsLoadingRealData(false);
+        }
+      } catch {
+        // Keep the app usable (anonymous mock defaults) rather than a broken/empty screen — reloading retries.
+        if (cancelled) return;
+        setIsAuthed(false);
+        setStudentName(randomPreviewName());
+      }
+    }
+
+    void loadRealDataOrPreview();
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const refreshFromServer = async () => {
+    setIsLoadingRealData(true);
+    try {
+      const data = await fetchAppData();
+      if (!data.onboarded) return;
+      setStudentName(data.studentName ?? 'there');
+      setCourses(data.courses ?? []);
+      setFixedEvents(data.fixedEvents ?? []);
+      setTasks(data.tasks ?? []);
+      setPreferences(data.preferences ?? PREFERENCES);
+      setOnboarded(true);
+      setNow(new Date());
+      setBlockOverrides({});
+    } finally {
+      setIsLoadingRealData(false);
+    }
+  };
 
   const { scheduleResult: computedResult, workload } = useMemo(
     () => computeSchedule(tasks, fixedEvents, preferences),
@@ -82,10 +167,48 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const setTaskStatus = (taskId: string, status: TaskStatus) => {
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status } : task)));
+    if (isAuthed) {
+      fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }).catch((err) => console.error('Failed to save task status', err));
+    }
   };
 
   const addTasks = (newTasks: AppTask[]) => {
+    // Real persistence only covers adding one task at a time (the Add Task
+    // modal) — UploadSyllabusFlow's multi-task import is still mocked
+    // end-to-end (ROADMAP.md §3C), so there's nothing real to save yet for
+    // that path regardless of auth state.
     setTasks((current) => [...current, ...newTasks]);
+    if (isAuthed && newTasks.length === 1) {
+      const [task] = newTasks;
+      fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: task.title,
+          type: task.type,
+          courseId: task.courseId,
+          description: task.description,
+          dueDate: task.dueDate.toISOString(),
+          estimatedMinutes: task.estimatedMinutes,
+          priority: task.priority,
+          gradeWeight: task.gradeWeight,
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`Failed to save new task (${res.status}).`);
+          const { task: saved } = await res.json();
+          // Swap the client-generated id for the server's real one so a
+          // later setTaskStatus() on this task actually finds its row.
+          setTasks((current) =>
+            current.map((t) => (t.id === task.id ? { ...saved, dueDate: new Date(saved.dueDate) } : t)),
+          );
+        })
+        .catch((err) => console.error('Failed to save new task', err));
+    }
   };
 
   const addFixedEvent = (event: FixedEvent) => {
@@ -114,6 +237,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    */
   const moveFixedEvent = (eventId: string, start: Date, end: Date) => {
     setFixedEvents((current) => current.map((event) => (event.id === eventId ? { ...event, start, end } : event)));
+    if (isAuthed) {
+      fetch(`/api/fixed-events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start: start.toISOString(), end: end.toISOString() }),
+      }).catch((err) => console.error('Failed to save moved event', err));
+    }
   };
 
   const getCourse = (courseId: string | undefined) => courses.find((course) => course.id === courseId);
@@ -126,6 +256,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setTasks(data.tasks);
     setBlockOverrides({});
     setOnboarded(true);
+    if (isAuthed) setNow(new Date());
   };
 
   const value: AppDataContextValue = {
@@ -136,8 +267,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     preferences,
     scheduleResult,
     workload,
-    now: MOCK_NOW,
+    now,
     onboarded,
+    isAuthed,
+    isLoadingRealData,
     setTaskStatus,
     addTasks,
     addFixedEvent,
@@ -145,6 +278,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     moveFixedEvent,
     getCourse,
     completeOnboarding,
+    refreshFromServer,
   };
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

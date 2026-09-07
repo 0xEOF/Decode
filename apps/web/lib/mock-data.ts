@@ -1,69 +1,41 @@
 import type { FixedEvent, SchedulingPreferences } from '@decode/scheduling-engine';
 import type { AppTask, Course } from './types';
+import {
+  buildAvailableWindows as buildAvailableWindowsFrom,
+  dateAt as dateAtFrom,
+  HORIZON_DAYS,
+  materializeRecurringEvents as materializeRecurringEventsFrom,
+  startOfWeek,
+  type RecurringEventInput,
+} from './scheduling-windows';
 
 /**
- * Sample semester data. There is no auth/database yet (see ROADMAP.md §17),
- * so the app UI runs entirely against this fixture so every screen — Today,
- * Calendar, Tasks, Courses — has something real to render and the actual
- * `@decode/scheduling-engine` package computes a real schedule from it. This
- * file is the one thing to delete once real onboarding + Postgres exist.
+ * Sample semester data. There is no persisted onboarding for anonymous
+ * visitors (the landing page's "Preview the scheduler" funnel — see
+ * proxy.ts), so that path still runs entirely against this fixture. Signed-in
+ * users get real data from Postgres instead — see app/api/app-data/route.ts,
+ * which calls the same date-math (lib/scheduling-windows.ts) bound to the
+ * actual current date rather than MOCK_NOW.
  */
 
 // A Wednesday, chosen so "3 days until the ECON exam" lands on a Saturday —
 // matches the worked example in ROADMAP.md §7.
 export const MOCK_NOW = new Date('2026-03-11T13:00:00.000Z');
 
-function startOfWeek(date: Date): Date {
-  const utcDay = date.getUTCDay(); // 0 = Sunday
-  const mondayOffset = utcDay === 0 ? -6 : 1 - utcDay;
-  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  start.setUTCDate(start.getUTCDate() + mondayOffset);
-  return start;
-}
-
 export const WEEK_START = startOfWeek(MOCK_NOW);
+
+export { HORIZON_DAYS };
 
 /** `dayOffset` is 0 = the Monday of MOCK_NOW's week, 1 = Tuesday, ... 13 = the Sunday after next. */
 export function dateAt(dayOffset: number, hhmm: string): Date {
-  const [hours, minutes] = hhmm.split(':').map(Number);
-  const result = new Date(WEEK_START);
-  result.setUTCDate(result.getUTCDate() + dayOffset);
-  result.setUTCHours(hours, minutes, 0, 0);
-  return result;
+  return dateAtFrom(WEEK_START, dayOffset, hhmm);
 }
 
-export const HORIZON_DAYS = 14;
-
-export interface RecurringEventInput {
-  /** FixedEvent ids are `${idPrefix}-${dayOffset}` — class-event color lookup (colors.ts) parses a course id back out of this for `type: 'class'`, so pass `class-${course.id}` there. */
-  idPrefix: string;
-  title: string;
-  type: FixedEvent['type'];
-  /** 0 = Monday ... 6 = Sunday. */
-  days: number[];
-  startTime: string;
-  endTime: string;
-}
+export type { RecurringEventInput };
 
 /** Expands recurring weekly commitments (classes, work shifts, personal activities) into concrete FixedEvents across the HORIZON_DAYS window — the "materialize recurring commitments" step types.ts's timezone note asks the caller to do. */
 export function materializeRecurringEvents(items: RecurringEventInput[]): FixedEvent[] {
-  const events: FixedEvent[] = [];
-  for (const item of items) {
-    for (let week = 0; week * 7 < HORIZON_DAYS; week++) {
-      for (const day of item.days) {
-        const dayOffset = week * 7 + day;
-        if (dayOffset >= HORIZON_DAYS) continue;
-        events.push({
-          id: `${item.idPrefix}-${dayOffset}`,
-          title: item.title,
-          type: item.type,
-          start: dateAt(dayOffset, item.startTime),
-          end: dateAt(dayOffset, item.endTime),
-        });
-      }
-    }
-  }
-  return events;
+  return materializeRecurringEventsFrom(WEEK_START, HORIZON_DAYS, items);
 }
 
 export const COURSES: Course[] = [
@@ -263,10 +235,7 @@ export const TASKS: AppTask[] = [
 
 /** Builds the `availableWindows` a SchedulingPreferences needs from a daily earliest/latest study time — used by both the default mock preferences below and the Onboarding wizard. */
 export function buildAvailableWindows(earliestTime: string, latestTime: string) {
-  return Array.from({ length: HORIZON_DAYS }, (_, dayOffset) => ({
-    start: dateAt(dayOffset, earliestTime),
-    end: dateAt(dayOffset, latestTime),
-  }));
+  return buildAvailableWindowsFrom(WEEK_START, HORIZON_DAYS, earliestTime, latestTime);
 }
 
 export const PREFERENCES: SchedulingPreferences = {
