@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from 'next';
+import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { AppDataProvider } from './AppDataProvider';
 import { SITE_NAME } from '../lib/site';
+
+// Self-hosted by next/font — no request to Google at runtime, so this stays
+// consistent with the "no third-party trackers" line in the Privacy Policy.
+// Scoped via the --font-hero CSS variable (see decode.css .app-header h1)
+// rather than applied globally, so the rest of the site keeps --sans.
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-hero', display: 'swap' });
 
 // Canonical/OG/sitemap absolute-URL base. See README.md "SEO" if this ever
 // needs to change again — one command updates every occurrence at once.
@@ -67,7 +74,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en">
+    <html lang="en" className={spaceGrotesk.variable}>
       <body>
         <AppDataProvider>{children}</AppDataProvider>
       </body>

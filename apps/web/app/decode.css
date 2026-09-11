@@ -209,10 +209,13 @@
 }
 
 .app-header h1 {
-  font-size: 36px;
+  font-family: var(--font-hero), var(--sans);
+  font-size: clamp(1.75rem, 1.1rem + 3vw, 3.25rem);
+  line-height: 1.08;
+  font-weight: 600;
   margin: 0 0 10px;
   color: var(--text-h);
-  letter-spacing: -0.8px;
+  letter-spacing: -0.02em;
 }
 
 .app-header .tagline {
