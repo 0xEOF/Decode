@@ -40,8 +40,14 @@ export async function POST(request: Request) {
     const result = await generateSafePrompt(getProvider(), { task, requirements, findingsSummary, cleanText });
     return Response.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Safe prompt generation failed.';
-    const status = message.includes('too long') || message.includes('is required') ? 400 : 502;
-    return Response.json({ error: message }, { status });
+    const message = err instanceof Error ? err.message : '';
+    if (message.includes('too long') || message.includes('is required')) {
+      return Response.json({ error: message }, { status: 400 });
+    }
+    console.error('[generate-safe-prompt] generation failed:', err);
+    return Response.json(
+      { error: 'Safe prompt generation is temporarily unavailable. Please try again later.' },
+      { status: 502 },
+    );
   }
 }

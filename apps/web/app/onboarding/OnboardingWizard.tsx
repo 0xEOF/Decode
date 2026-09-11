@@ -324,8 +324,9 @@ export default function OnboardingWizard() {
             <section>
               <h1>Let&rsquo;s set up your semester</h1>
               <p className="onboarding-subtitle">
-                A few basics first — this preview doesn&rsquo;t persist accounts yet (ROADMAP.md §17), so this just
-                seeds the app you&rsquo;re about to see.
+                {isAuthed
+                  ? 'A few basics first — this sets up the semester saved to your account.'
+                  : "A few basics first — you're not signed in, so this just seeds a preview that resets on reload."}
               </p>
               <label className="form-field">
                 <span>Your name</span>

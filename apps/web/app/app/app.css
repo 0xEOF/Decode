@@ -24,12 +24,20 @@
   color: var(--text-h);
   text-decoration: none;
   letter-spacing: -0.3px;
+  flex-shrink: 0;
 }
 
 .app-nav {
   display: flex;
   gap: 4px;
   flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .app-nav-link {
@@ -39,6 +47,8 @@
   font-weight: 500;
   color: var(--text-dim);
   text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -98,6 +108,21 @@
   max-width: 1080px;
   margin: 0 auto;
   padding: 32px 24px 80px;
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .app-auth-email {
+    max-width: 90px;
+  }
+
+  .app-main {
+    padding: 20px 16px 72px;
+  }
 }
 
 button.button-primary {
@@ -848,6 +873,12 @@ button.button-secondary:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-field {

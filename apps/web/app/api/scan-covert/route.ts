@@ -31,8 +31,11 @@ export async function POST(request: Request) {
     const result = await scanForCovertInstructions(getProvider(), text);
     return Response.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Deep scan failed.';
-    const status = message.includes('too long') ? 413 : 502;
-    return Response.json({ error: message }, { status });
+    const message = err instanceof Error ? err.message : '';
+    if (message.includes('too long')) {
+      return Response.json({ error: message }, { status: 413 });
+    }
+    console.error('[scan-covert] deep scan failed:', err);
+    return Response.json({ error: 'AI deep scan is temporarily unavailable. Please try again later.' }, { status: 502 });
   }
 }
