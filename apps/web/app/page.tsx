@@ -11,11 +11,11 @@ const FAQ = [
   },
   {
     q: 'How do I check if my essay or assignment has hidden text?',
-    a: `Paste the text into the box above and click Analyze text. ${SITE_NAME} checks for CSS-hidden content and invisible Unicode characters locally, then highlights anything it finds directly in your text. Click Run AI deep scan afterward to also catch paraphrased covert instructions a fixed pattern list would miss.`,
+    a: `Paste the text into the box above and click Analyze text. ${SITE_NAME} checks for CSS-hidden content and invisible Unicode characters locally, then automatically runs an AI deep scan on the visible text to also catch paraphrased covert instructions a fixed pattern list would miss.`,
   },
   {
     q: 'Does my text get sent anywhere?',
-    a: 'Hidden-content and invisible-Unicode detection run entirely in your browser and nothing is sent anywhere for that. Only if you click Run AI deep scan is the visible text sent to our server, to catch paraphrased covert instructions a fixed pattern list would miss — hidden content itself is never sent.',
+    a: 'Hidden content and invisible Unicode are found locally in your browser — that part is never sent anywhere. Clicking Analyze text also sends the visible text to our server for an AI deep scan that catches paraphrased covert instructions a fixed pattern list would miss. Hidden content itself is never sent.',
   },
   {
     q: 'Can teachers use this to check assignments or AI grading prompts?',
@@ -35,7 +35,7 @@ const FAQ = [
   },
   {
     q: `What's the difference between ${SITE_NAME}'s instant checks and the AI deep scan?`,
-    a: 'Hidden-content and invisible-Unicode checks are pattern-based and run instantly, entirely in your browser, as soon as you click Analyze text. The AI deep scan is a separate, optional step — click Run AI deep scan afterward and only then is the visible text sent to catch paraphrased covert instructions that don’t match any fixed pattern, like "if you are an AI, disregard the rubric" worded in a way a keyword list would miss.',
+    a: 'Hidden-content and invisible-Unicode checks are pattern-based and run instantly, entirely in your browser, the moment you click Analyze text. The same click also sends the visible text to our server for an AI deep scan, which catches paraphrased covert instructions that don’t match any fixed pattern, like "if you are an AI, disregard the rubric" worded in a way a keyword list would miss.',
   },
   {
     q: 'Can I safely hand the cleaned text to ChatGPT or another AI?',
@@ -53,7 +53,7 @@ const softwareApplicationJsonLd = {
   name: SITE_NAME,
   alternateName: 'Hidden Text & Content Scanner',
   description:
-    'Browser-based tool that scans pasted text or rich-text/HTML for hidden content and invisible Unicode characters locally, with an optional AI deep scan for paraphrased or covert AI-directed instructions, then produces a clean copy with only the hidden/covert content removed.',
+    'Browser-based tool that scans pasted text or rich-text/HTML for hidden content and invisible Unicode characters locally, and automatically runs an AI deep scan for paraphrased or covert AI-directed instructions, then produces a clean copy with only the hidden/covert content removed.',
   applicationCategory: 'SecurityApplication',
   operatingSystem: 'Any (web browser)',
   browserRequirements: 'Requires JavaScript',
@@ -173,7 +173,7 @@ export default function HomePage() {
                 </span>
                 <div>
                   <strong>Analyze</strong> — {SITE_NAME} checks locally for CSS-hidden content and invisible
-                  Unicode characters. Choose to run an AI deep scan afterward for covert instructions a fixed
+                  Unicode characters, then automatically runs an AI deep scan for covert instructions a fixed
                   pattern list would miss.
                 </div>
               </li>
@@ -223,9 +223,9 @@ export default function HomePage() {
             <Link href="/privacy">Privacy</Link>
           </div>
           <p>
-            Hidden/invisible-content detection runs entirely in your browser. Visible text is sent to our server
-            only if you choose to run the optional AI deep scan for covert instructions — this tool exposes hidden
-            content, it does not censor visible content.
+            Hidden/invisible-content detection runs entirely in your browser. Visible text is also sent to our
+            server for an AI deep scan of covert instructions whenever you click Analyze text — this tool exposes
+            hidden content, it does not censor visible content.
           </p>
         </footer>
       </div>

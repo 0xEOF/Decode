@@ -485,22 +485,8 @@ mark {
   line-height: 1.6;
 }
 
-.deep-scan-prompt {
-  padding: 16px;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: var(--accent-bg);
-}
-
-.deep-scan-prompt p {
-  margin: 0 0 6px;
-  font-size: 13px;
-  color: var(--text-h);
-}
-
-.deep-scan-prompt .deep-scan-hint {
-  color: var(--text-dim);
-  margin-bottom: 12px;
+.scan-disclosure p {
+  margin: 8px 0 0;
 }
 
 .ai-error-banner {
@@ -510,6 +496,10 @@ mark {
   background: var(--keyword-bg);
   color: var(--keyword);
   font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .ai-error-banner span {

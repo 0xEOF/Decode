@@ -18,8 +18,9 @@ export default function TermsPage() {
       <h2>The service</h2>
       <p>
         {SITE_NAME}&apos;s scanner checks pasted text locally in your browser for hidden content and invisible
-        Unicode characters, with an optional, opt-in AI deep scan and safe-prompt generator that send data to a
-        third-party AI provider. The Student Success Assistant is a preview with no accounts or data persistence
+        Unicode characters, and automatically runs an AI deep scan (plus an optional safe-prompt generator) that
+        send data to a third-party AI provider. The Student Success Assistant is a preview with no accounts or
+        data persistence
         — it may change substantially, reset, or be temporarily unavailable without notice while in development.
       </p>
 
@@ -49,9 +50,9 @@ export default function TermsPage() {
 
       <h2>Third-party AI</h2>
       <p>
-        The optional AI deep scan and safe-prompt features send data to a third-party AI provider to generate
-        their results. By using those specific features, you agree to that transmission as described in our{' '}
-        <a href="/privacy">Privacy Policy</a>.
+        The AI deep scan (which runs automatically when you analyze text) and the optional safe-prompt feature
+        send data to a third-party AI provider to generate their results. By using the scanner, you agree to that
+        transmission as described in our <a href="/privacy">Privacy Policy</a>.
       </p>
 
       <h2>No warranty</h2>

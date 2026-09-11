@@ -19,10 +19,10 @@ export default function PrivacyPolicyPage() {
       <h2>What we collect</h2>
       <p>
         <strong>Text you paste to scan.</strong> The hidden-content and invisible-Unicode checks run entirely in
-        your browser — that text is never sent anywhere for those checks. If you click{' '}
-        <strong>&ldquo;Run AI deep scan,&rdquo;</strong> the visible text is sent to our server and forwarded to
-        our AI provider (see &ldquo;Third parties&rdquo; below) solely to detect covert AI-directed instructions.
-        We do not save that text to a database afterward.
+        your browser — that text is never sent anywhere for those checks. When you click{' '}
+        <strong>&ldquo;Analyze text,&rdquo;</strong> the visible text is also sent to our server and forwarded to
+        our AI provider (see &ldquo;Third parties&rdquo; below) for an AI deep scan that detects covert
+        AI-directed instructions. We do not save that text to a database afterward.
       </p>
       <p>
         <strong>Safe Prompt feature.</strong> If you use &ldquo;Generate Safe Prompt,&rdquo; the task description,
@@ -51,8 +51,9 @@ export default function PrivacyPolicyPage() {
       <h2>Third parties</h2>
       <ul>
         <li>
-          <strong>Anthropic (Claude API):</strong> processes the visible text you submit when you opt into the AI
-          deep scan or safe-prompt features, solely to return the result to you.
+          <strong>Anthropic (Claude API):</strong> processes the visible text you submit for the AI deep scan
+          (which runs automatically when you click &ldquo;Analyze text&rdquo;) or the safe-prompt feature, solely
+          to return the result to you.
         </li>
         <li>
           <strong>Hosting provider:</strong> our infrastructure provider processes requests to operate the site,
@@ -75,9 +76,11 @@ export default function PrivacyPolicyPage() {
 
       <h2>Your choices</h2>
       <p>
-        You can use every local check with zero data leaving your browser by never clicking &ldquo;Run AI deep
-        scan&rdquo; or &ldquo;Generate Safe Prompt.&rdquo; To remove your email from the waitlist, contact us at
-        the address below.
+        Hidden-content and invisible-Unicode checks always run locally with zero data leaving your browser. The AI
+        deep scan runs automatically whenever you click &ldquo;Analyze text,&rdquo; so if you&apos;d rather keep
+        visible text off our servers entirely, don&apos;t paste it into the scanner. &ldquo;Generate Safe
+        Prompt&rdquo; remains a separate, optional step you choose to use. To remove your email from the waitlist,
+        contact us at the address below.
       </p>
 
       <h2>Children&apos;s privacy</h2>

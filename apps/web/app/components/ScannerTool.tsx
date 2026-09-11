@@ -43,7 +43,6 @@ export default function ScannerTool() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isDeepScanning, setIsDeepScanning] = useState(false);
-  const [hasRunDeepScan, setHasRunDeepScan] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -71,28 +70,7 @@ export default function ScannerTool() {
     setResult(null);
   }
 
-  function runLocalScan(text: string, html?: string) {
-    abortRef.current?.abort();
-    const local = analyze({ text, html });
-    setResult(local);
-    setShowPreview(false);
-    setAiError(null);
-    setHasRunDeepScan(false);
-  }
-
-  function handleAnalyze() {
-    runLocalScan(rawText, pastedHtml);
-  }
-
-  function handleTryExample() {
-    setRawText(EXAMPLE_TEXT);
-    setPastedHtml(EXAMPLE_HTML);
-    runLocalScan(EXAMPLE_TEXT, EXAMPLE_HTML);
-  }
-
-  async function handleDeepScan() {
-    if (!result) return;
-    abortRef.current?.abort();
+  async function runDeepScan(base: AnalysisResult) {
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -100,17 +78,40 @@ export default function ScannerTool() {
     setIsDeepScanning(true);
 
     try {
-      const { blob } = flattenVisibleText(result.segments);
+      const { blob } = flattenVisibleText(base.segments);
       const aiFindings = await scanWithAI(blob, controller.signal);
       if (controller.signal.aborted) return;
       setResult((current) => (current ? mergeAIFindings(current, aiFindings) : current));
-      setHasRunDeepScan(true);
     } catch (err) {
       if (controller.signal.aborted) return;
-      setAiError(err instanceof Error ? err.message : 'AI deep scan unavailable — showing local results only.');
+      setAiError(err instanceof Error ? err.message : 'AI deep scan unavailable — showing local checks only.');
     } finally {
       if (!controller.signal.aborted) setIsDeepScanning(false);
     }
+  }
+
+  async function runFullScan(text: string, html?: string) {
+    abortRef.current?.abort();
+    const local = analyze({ text, html });
+    setResult(local);
+    setShowPreview(false);
+    setAiError(null);
+    await runDeepScan(local);
+  }
+
+  function handleAnalyze() {
+    runFullScan(rawText, pastedHtml);
+  }
+
+  function handleTryExample() {
+    setRawText(EXAMPLE_TEXT);
+    setPastedHtml(EXAMPLE_HTML);
+    runFullScan(EXAMPLE_TEXT, EXAMPLE_HTML);
+  }
+
+  function handleRetryDeepScan() {
+    if (!result) return;
+    runDeepScan(result);
   }
 
   function handleClear() {
@@ -121,7 +122,6 @@ export default function ScannerTool() {
     setResult(null);
     setAiError(null);
     setIsDeepScanning(false);
-    setHasRunDeepScan(false);
     setTask('');
     setRequirements('');
     setSafePrompt(null);
@@ -200,6 +200,11 @@ export default function ScannerTool() {
           <li>Invisible Unicode: zero-width spaces, bidirectional overrides, Unicode tag characters</li>
           <li>Suspicious phrases and covert instructions intended to influence an AI assistant, grader, or ATS</li>
         </ul>
+        <p>
+          Hidden content and invisible Unicode are found locally in your browser. Clicking Analyze also sends the
+          visible text to our server for an AI deep scan that catches paraphrased or covert instructions a fixed
+          pattern list would miss — hidden content itself is never sent.
+        </p>
       </details>
 
       {result && (
@@ -233,28 +238,13 @@ export default function ScannerTool() {
           {aiError && (
             <div className="ai-error-banner">
               AI deep scan unavailable — showing local checks only. <span>{aiError}</span>
+              <button type="button" className="btn btn-primary" onClick={handleRetryDeepScan}>
+                Retry AI deep scan
+              </button>
             </div>
           )}
 
           <AnalyzedOutput result={result} />
-
-          {!hasRunDeepScan && !isDeepScanning && !aiError && (
-            <div className="deep-scan-prompt">
-              <p>
-                Local scan complete —{' '}
-                {result.stats.total === 0
-                  ? 'no hidden content or invisible Unicode found.'
-                  : `${result.stats.total} finding${result.stats.total === 1 ? '' : 's'} found.`}
-              </p>
-              <p className="deep-scan-hint">
-                Want a deeper check for paraphrased or covert AI instructions a fixed pattern list might miss? This
-                sends only the visible text above to our server.
-              </p>
-              <button type="button" className="btn btn-primary" onClick={handleDeepScan}>
-                Run AI deep scan
-              </button>
-            </div>
-          )}
 
           <div className="panel-header">
             <span>
